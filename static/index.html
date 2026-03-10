@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MIXXIN — Typeform 名單匯出</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-from:   #fdf6e3;
+      --bg-to:     #e8f4f0;
+      --card:      #ffffff;
+      --brand:     #2a7a6f;
+      --brand-lt:  #3a9a8d;
+      --yellow:    #f0b429;
+      --yellow-dk: #d49a10;
+      --text:      #1e2d2b;
+      --muted:     #7a9490;
+      --muted2:    #b0c8c4;
+      --border:    #e0eeeb;
+      --tag:       #f0b42920;
+      --success:   #2a7a6f;
+      --error:     #c0392b;
+      --warn:      #e67e22;
+      --log-bg:    #f7faf9;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(145deg, var(--bg-from) 0%, #f5f0e8 40%, var(--bg-to) 100%);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-weight: 400;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 20px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      color: var(--brand);
+    }
+    .logo-sub {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      margin-top: 1px;
+    }
+    .header-badge {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--brand);
+      background: white;
+      border: 1.5px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 24px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ── Page title ── */
+    .page-title {
+      padding: 8px 4px 4px;
+    }
+    .page-title .eyebrow {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--yellow-dk);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .page-title h1 {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .page-title p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.6;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(42,122,111,0.07), 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--brand);
+      letter-spacing: 0.06em;
+      margin-bottom: 18px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px; height: 16px;
+      background: var(--yellow);
+      border-radius: 2px;
+    }
+
+    /* ── Input ── */
+    .input-wrap {
+      display: flex; gap: 10px;
+    }
+    input[type="text"], input[type="password"] {
+      flex: 1;
+      background: #f7faf9;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 14px;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"]:focus, input[type="password"]:focus {
+      border-color: var(--brand-lt);
+      box-shadow: 0 0 0 3px rgba(42,122,111,0.1);
+      background: white;
+    }
+    input::placeholder { color: var(--muted2); }
+
+    /* ── Button ── */
+    .btn-primary {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 28px;
+      background: var(--yellow);
+      color: var(--text);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 2px 8px rgba(240,180,41,0.3);
+    }
+    .btn-primary:hover { background: var(--yellow-dk); box-shadow: 0 4px 12px rgba(240,180,41,0.4); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-open {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 14px 20px;
+      background: var(--brand);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.18s;
+      box-shadow: 0 2px 8px rgba(42,122,111,0.25);
+    }
+    .btn-open:hover { background: var(--brand-lt); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(42,122,111,0.35); }
+
+    /* ── Progress ── */
+    .progress-wrap { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 14px; display: none; }
+    .progress-wrap.active { display: block; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--yellow), var(--brand-lt)); border-radius: 3px; width: 0%; transition: width 0.4s ease; }
+
+    /* ── Settings ── */
+    .settings-toggle {
+      font-size: 12px; color: var(--muted);
+      cursor: pointer; background: none; border: none;
+      padding: 0; margin-top: 12px; display: block;
+      font-family: 'Noto Sans TC', sans-serif;
+      transition: color 0.15s;
+    }
+    .settings-toggle:hover { color: var(--brand); }
+    .settings-panel { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .settings-panel.open { display: block; }
+    .settings-row { display: flex; gap: 10px; }
+    .field { flex: 1; }
+    .field label { display: block; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 6px; }
+
+    /* ── Log ── */
+    .log-box {
+      background: var(--log-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      max-height: 180px;
+      overflow-y: auto;
+      font-family: 'Noto Sans TC', monospace;
+      font-size: 12px;
+      line-height: 2;
+      display: none;
+    }
+    .log-box.visible { display: block; }
+    .log-box::-webkit-scrollbar { width: 4px; }
+    .log-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .log-entry { display: flex; gap: 10px; }
+    .log-time { color: var(--muted2); flex-shrink: 0; font-size: 11px; }
+    .log-msg.success { color: var(--success); font-weight: 500; }
+    .log-msg.error   { color: var(--error); font-weight: 500; }
+    .log-msg.warn    { color: var(--warn); }
+    .log-msg.muted   { color: var(--muted); }
+
+    /* ── Result ── */
+    .result-section { display: none; }
+    .result-section.visible { display: flex; flex-direction: column; gap: 16px; }
+
+    .stats-row { display: flex; gap: 12px; }
+    .stat {
+      flex: 1;
+      background: linear-gradient(135deg, #f0faf8, #e8f4f0);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 28px; font-weight: 700;
+      color: var(--brand);
+      display: block;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 11px; font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-top: 6px;
+      display: block;
+    }
+    .stat.time .stat-num { color: var(--yellow-dk); }
+
+    /* ── History ── */
+    .history-list { display: flex; flex-direction: column; gap: 8px; }
+    .history-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      background: #f7faf9;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .history-item:hover { border-color: var(--brand-lt); background: white; box-shadow: 0 2px 8px rgba(42,122,111,0.08); }
+    .history-id { color: var(--brand); font-weight: 700; min-width: 90px; }
+    .history-date { color: var(--muted); min-width: 90px; }
+    .history-counts { color: var(--text); flex: 1; }
+    .history-dl {
+      color: var(--muted); text-decoration: none; font-size: 11px;
+      padding: 4px 10px; border: 1.5px solid var(--border);
+      border-radius: 8px; transition: all 0.15s; white-space: nowrap;
+      font-weight: 500;
+    }
+    .history-dl:hover { color: var(--brand); border-color: var(--brand); background: #f0faf8; }
+    .history-empty { color: var(--muted2); font-size: 12px; text-align: center; padding: 20px; }
+
+    /* ── Spinner ── */
+    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(30,45,43,0.2); border-top-color: var(--text); border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .form-item {
+      display: flex; flex-direction: column; gap: 2px;
+      padding: 10px 14px;
+      background: #f7faf9;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .form-item:hover { border-color: var(--brand-lt); background: white; }
+    .form-item.selected { border-color: var(--brand); background: #f0faf8; }
+    .form-item-title { font-size: 13px; font-weight: 500; color: var(--text); }
+    .form-item-meta { font-size: 11px; color: var(--muted); font-family: monospace; }
+
+    @media (max-width: 600px) {
+      header { padding: 16px 20px; }
+      main { padding: 16px 16px 48px; }
+      .settings-row { flex-direction: column; }
+      .stats-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">MIXXIN FORM</div>
+    <div class="logo-sub">TYPEFORM EXPORTER</div>
+  </div>
+  <div class="header-badge">內部工具</div>
+</header>
+
+<main>
+
+  <div class="page-title">
+    <div class="eyebrow">MIXXIN FORM</div>
+    <h1>名單匯出工具</h1>
+    <p>貼上 Typeform Form ID，自動整理 email 與電話名單，匯出至 Google Sheet。</p>
+  </div>
+
+  <!-- 主要操作 -->
+  <div class="card">
+    <div class="card-title">匯出名單</div>
+
+    <!-- 選單區 -->
+    <div id="formSelectWrap" style="margin-bottom:14px; display:none;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;"><label style="font-size:11px; font-weight:500; color:var(--muted); letter-spacing:0.06em;">近期表單</label><button onclick="loadForms()" style="font-size:11px; color:var(--brand); background:none; border:none; cursor:pointer; padding:0; font-family:'Noto Sans TC',sans-serif;">↻ 重新載入</button></div>
+      <div id="formList" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto;"></div>
+      <div id="formListLoading" style="font-size:12px; color:var(--muted); padding:12px 0; text-align:center;">載入中...</div>
+    </div>
+
+    <!-- 分隔線 -->
+    <div id="divider" style="display:none; height:1px; background:var(--border); margin:16px 0;"></div>
+
+    <!-- 手動輸入區 -->
+    <label style="font-size:11px; font-weight:500; color:var(--muted); letter-spacing:0.06em; display:block; margin-bottom:7px;">手動輸入 Form ID</label>
+    <div class="input-wrap">
+      <input type="text" id="formId" placeholder="例如 kvXJ90jH" autocomplete="off" />
+      <button class="btn-primary" id="exportBtn" onclick="startExport()">執行</button>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <button class="settings-toggle" onclick="toggleSettings()">⚙ API 設定</button>
+    <div class="settings-panel" id="settingsPanel">
+      <div class="settings-row">
+        <div class="field">
+          <label>API ENDPOINT</label>
+          <input type="text" id="apiEndpoint" placeholder="https://your-app.railway.app" />
+        </div>
+        <div class="field">
+          <label>API SECRET（選填）</label>
+          <input type="password" id="apiSecret" placeholder="Bearer token" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div class="log-box" id="logBox"></div>
+
+  <!-- 結果 -->
+  <div class="result-section" id="resultSection">
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-num" id="statEmail">—</span>
+        <span class="stat-label">EMAIL 筆數</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num" id="statPhone">—</span>
+        <span class="stat-label">PHONE 筆數</span>
+      </div>
+      <div class="stat time">
+        <span class="stat-num" id="statTime">—</span>
+        <span class="stat-label">執行秒數</span>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom:10px;">
+      <button onclick="downloadCSV('email')" style="flex:1; font-family:'Noto Sans TC',sans-serif; font-weight:700; font-size:13px; padding:12px; background:#f0faf8; color:#2a7a6f; border:1.5px solid #b8deca; border-radius:12px; cursor:pointer;">✉ 下載 Email CSV</button>
+      <button onclick="downloadCSV('phone')" style="flex:1; font-family:'Noto Sans TC',sans-serif; font-weight:700; font-size:13px; padding:12px; background:#f0faf8; color:#2a7a6f; border:1.5px solid #b8deca; border-radius:12px; cursor:pointer;">📱 下載 Phone CSV</button>
+    </div>
+    <a class="btn-open" id="btnOpenSheet" href="#" target="_blank" style="display:none;">
+      ↗ &nbsp;開啟 Google Sheet
+    </a>
+  </div>
+
+  <!-- 歷史紀錄 -->
+  <div class="card">
+    <div class="card-title">歷史紀錄</div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty">尚無歷史紀錄</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const SETTINGS_KEY = 'mixxin_tf_settings';
+  const HISTORY_KEY  = 'mixxin_tf_history';
+  let currentFormId  = '';
+
+  function loadSettings() {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    if (s.endpoint) document.getElementById('apiEndpoint').value = s.endpoint;
+    if (s.secret)   document.getElementById('apiSecret').value   = s.secret;
+  }
+  function saveSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+      endpoint: document.getElementById('apiEndpoint').value.trim(),
+      secret:   document.getElementById('apiSecret').value.trim(),
+    }));
+  }
+  document.getElementById('apiEndpoint').addEventListener('change', () => { saveSettings(); loadForms(); });
+  document.getElementById('apiSecret').addEventListener('change', saveSettings);
+  function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('open'); }
+
+  function loadHistory() { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+  function saveHistory(r) { localStorage.setItem(HISTORY_KEY, JSON.stringify(r.slice(0, 20))); }
+  function addHistory(r) { const h = loadHistory(); h.unshift(r); saveHistory(h); renderHistory(); }
+  function renderHistory() {
+    const list = document.getElementById('historyList');
+    const records = loadHistory();
+    if (!records.length) { list.innerHTML = '<div class="history-empty">尚無歷史紀錄</div>'; return; }
+    list.innerHTML = records.map(r => `
+      <div class="history-item" onclick="loadFromHistory('${r.form_id}','${r.sheet_url}',${r.email_count},${r.phone_count},${r.elapsed})">
+        <span class="history-id">${r.form_id}</span>
+        <span class="history-date">${r.date}</span>
+        <span class="history-counts">✉ ${r.email_count} &nbsp;📱 ${r.phone_count}</span>
+        <a class="history-dl" href="${r.sheet_url}" target="_blank" onclick="event.stopPropagation()">Sheets ↗</a>
+      </div>
+    `).join('');
+  }
+  function loadFromHistory(formId, sheetUrl, emailCount, phoneCount, elapsed) {
+    currentFormId = formId;
+    document.getElementById('formId').value = formId;
+    showResult(sheetUrl, emailCount, phoneCount, elapsed);
+  }
+
+  function log(msg, type = '') {
+    const box = document.getElementById('logBox');
+    box.classList.add('visible');
+    const now = new Date().toTimeString().slice(0, 8);
+    const div = document.createElement('div');
+    div.className = 'log-entry';
+    div.innerHTML = `<span class="log-time">${now}</span><span class="log-msg ${type}">${msg}</span>`;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+  function clearLog() { const b = document.getElementById('logBox'); b.innerHTML = ''; b.classList.remove('visible'); }
+
+  function setProgress(pct) {
+    document.getElementById('progressWrap').classList.toggle('active', pct > 0 && pct < 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+
+  function showResult(sheetUrl, emailCount, phoneCount, elapsed) {
+    document.getElementById('btnOpenSheet').href = sheetUrl;
+    document.getElementById('statEmail').textContent = emailCount;
+    document.getElementById('statPhone').textContent = phoneCount;
+    document.getElementById('statTime').textContent  = elapsed;
+    document.getElementById('resultSection').classList.add('visible');
+  }
+
+  async function startExport() {
+    const formId   = document.getElementById('formId').value.trim();
+    const endpoint = document.getElementById('apiEndpoint').value.trim();
+    const secret   = document.getElementById('apiSecret').value.trim();
+
+    if (!formId) { log('⚠ 請輸入 Form ID', 'warn'); return; }
+    if (!endpoint) {
+      log('⚠ 請在「API 設定」填入 Railway endpoint', 'warn');
+      document.getElementById('settingsPanel').classList.add('open'); return;
+    }
+
+    currentFormId = formId;
+    const btn = document.getElementById('exportBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 執行中';
+    document.getElementById('resultSection').classList.remove('visible');
+    clearLog();
+    log(`▶ 開始匯出：${formId}`);
+    setProgress(10);
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (secret) headers['Authorization'] = `Bearer ${secret}`;
+
+    let fakePct = 10;
+    const timer = setInterval(() => { fakePct = Math.min(fakePct + Math.random() * 7, 88); setProgress(fakePct); }, 1400);
+
+    try {
+      log('📥 連線中...');
+      const res = await fetch(`${endpoint}/export`, { method: 'POST', headers, body: JSON.stringify({ form_id: formId }) });
+      clearInterval(timer);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        log(`✕ 錯誤 ${res.status}：${err.detail || '未知錯誤'}`, 'error');
+        setProgress(0); return;
+      }
+
+      const data = await res.json();
+      setProgress(100);
+      setTimeout(() => setProgress(0), 600);
+
+      log(`✔ 完成！Email ${data.email_count} 筆，Phone ${data.phone_count} 筆`, 'success');
+      log(`⏱ 耗時 ${data.elapsed_seconds} 秒`, 'muted');
+
+      showResult(data.sheet_url, data.email_count, data.phone_count, data.elapsed_seconds);
+      addHistory({
+        form_id: data.form_id,
+        date: new Date().toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }),
+        email_count: data.email_count, phone_count: data.phone_count,
+        elapsed: data.elapsed_seconds, sheet_url: data.sheet_url,
+      });
+    } catch (e) {
+      clearInterval(timer); setProgress(0);
+      log(`✕ 無法連線：${e.message}`, 'error');
+      log('請確認 Railway endpoint 是否正確', 'muted');
+    } finally {
+      btn.disabled = false; btn.innerHTML = '執行';
+    }
+  }
+
+  function downloadCSV(type) {
+    const endpoint = document.getElementById('apiEndpoint').value.trim();
+    const secret   = document.getElementById('apiSecret').value.trim();
+    if (!endpoint || !currentFormId) return;
+    const headers = {};
+    if (secret) headers['Authorization'] = `Bearer ${secret}`;
+    fetch(`${endpoint}/download/${type}?form_id=${currentFormId}`, { headers })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const disposition = res.headers.get('Content-Disposition') || '';
+        const match = disposition.match(/filename=(.+)/);
+        const filename = match ? match[1] : `TF_${type}_${currentFormId}.csv`;
+        return res.blob().then(blob => ({ blob, filename }));
+      })
+      .then(({ blob, filename }) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        log(`✔ ${type === 'email' ? 'Email' : 'Phone'} CSV 下載完成`, 'success');
+      })
+      .catch(e => log(`✕ 下載失敗：${e.message}`, 'error'));
+  }
+
+  document.getElementById('formId').addEventListener('keydown', e => { if (e.key === 'Enter') startExport(); });
+  loadSettings();
+  renderHistory();
+  loadForms();
+
+  async function loadForms() {
+    const endpoint = document.getElementById('apiEndpoint').value.trim();
+    if (!endpoint) return;
+
+    const secret = document.getElementById('apiSecret').value.trim();
+    const headers = {};
+    if (secret) headers['Authorization'] = `Bearer ${secret}`;
+
+    document.getElementById('formSelectWrap').style.display = 'block';
+    document.getElementById('divider').style.display = 'block';
+    document.getElementById('formListLoading').style.display = 'block';
+    document.getElementById('formList').innerHTML = '';
+
+    try {
+      const res = await fetch(`${endpoint}/forms`, { headers });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      document.getElementById('formListLoading').style.display = 'none';
+
+      if (!data.forms.length) {
+        document.getElementById('formList').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0;">沒有找到表單</div>';
+        return;
+      }
+
+      document.getElementById('formList').innerHTML = data.forms.map(f => {
+        const date = f.last_updated_at ? new Date(f.last_updated_at).toLocaleDateString('zh-TW', {month:'2-digit', day:'2-digit'}) : '';
+        return `<div class="form-item" onclick="selectForm('${f.id}', this)">
+          <span class="form-item-title">${f.title}</span>
+          <span class="form-item-meta">${f.id}${date ? ' · ' + date : ''}</span>
+        </div>`;
+      }).join('');
+
+    } catch(e) {
+      document.getElementById('formListLoading').style.display = 'none';
+      document.getElementById('formList').innerHTML = `<div style="font-size:12px;color:var(--muted);padding:8px 0;">無法載入（先啟動 server）</div>`;
+    }
+  }
+
+  function selectForm(formId, el) {
+    document.getElementById('formId').value = formId;
+    document.querySelectorAll('.form-item').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+</script>
+</body>
+</html>
