@@ -119,6 +119,27 @@ def write_to_sheets(sheets_service, spreadsheet_id, cleaned):
     email_rows = [["email", "name"]] + [(r["email"], i+1) for i, r in enumerate(cleaned) if r["email"]]
     phone_rows = [["phone"]] + [(r["phone"],) for r in cleaned if r["phone"]]
 
+    # 先取得 sheet ID，再擴展行數以容納所有資料
+    meta = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    sheet_map = {s["properties"]["title"]: s["properties"]["sheetId"] for s in meta["sheets"]}
+
+    expand_requests = []
+    for sheet_title, rows in [("email", email_rows), ("phone", phone_rows)]:
+        if len(rows) > 1000 and sheet_title in sheet_map:
+            expand_requests.append({
+                "updateSheetProperties": {
+                    "properties": {
+                        "sheetId": sheet_map[sheet_title],
+                        "gridProperties": {"rowCount": len(rows) + 100}
+                    },
+                    "fields": "gridProperties.rowCount"
+                }
+            })
+    if expand_requests:
+        sheets_service.spreadsheets().batchUpdate(
+            spreadsheetId=spreadsheet_id, body={"requests": expand_requests}
+        ).execute()
+
     total = len(cleaned)
     batch_size = 900 if total <= 2000 else (700 if total <= 4000 else 500)
 
