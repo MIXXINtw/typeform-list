@@ -6,7 +6,7 @@ Railway 部署版
 
 import io, os, csv, re, time, requests
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -141,10 +141,6 @@ def write_to_sheets(sheets_service, spreadsheet_id, cleaned):
 app = FastAPI(title="Typeform Exporter")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-def verify_token(authorization: str = Header(default="")):
-    if API_SECRET and authorization != f"Bearer {API_SECRET}":
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
 class ExportRequest(BaseModel):
     form_id: str
 
@@ -153,7 +149,7 @@ def health():
     return {"status": "ok"}
 
 @app.get("/forms")
-def get_forms(_=Depends(verify_token)):
+def get_forms():
     if not TYPEFORM_TOKEN:
         raise HTTPException(status_code=500, detail="未設定 TYPEFORM_TOKEN")
     resp = requests.get("https://api.typeform.com/forms",
@@ -165,7 +161,7 @@ def get_forms(_=Depends(verify_token)):
                        "last_updated_at": f.get("last_updated_at","")} for f in items]}
 
 @app.post("/export")
-def export(req: ExportRequest, _=Depends(verify_token)):
+def export(req: ExportRequest):
     form_id = req.form_id.strip()
     start = time.time()
 
@@ -204,7 +200,7 @@ def make_csv(rows, headers):
     return buf.getvalue().encode("utf-8-sig")
 
 @app.get("/download/email")
-def download_email(form_id: str, _=Depends(verify_token)):
+def download_email(form_id: str):
     if form_id not in _cache: raise HTTPException(status_code=404, detail="請先執行匯出")
     c = _cache[form_id]
     fname = f"{c['title']}_email_{c['timestamp']}.csv"
@@ -212,7 +208,7 @@ def download_email(form_id: str, _=Depends(verify_token)):
         media_type="text/csv", headers={"Content-Disposition": f"attachment; filename*=UTF-8''{requests.utils.quote(fname)}"})
 
 @app.get("/download/phone")
-def download_phone(form_id: str, _=Depends(verify_token)):
+def download_phone(form_id: str):
     if form_id not in _cache: raise HTTPException(status_code=404, detail="請先執行匯出")
     c = _cache[form_id]
     fname = f"{c['title']}_phone_{c['timestamp']}.csv"
