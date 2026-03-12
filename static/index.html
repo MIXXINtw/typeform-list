@@ -196,21 +196,6 @@
     .progress-wrap.active { display: block; }
     .progress-bar { height: 100%; background: linear-gradient(90deg, var(--yellow), var(--brand-lt)); border-radius: 3px; width: 0%; transition: width 0.4s ease; }
 
-    /* ── Settings ── */
-    .settings-toggle {
-      font-size: 12px; color: var(--muted);
-      cursor: pointer; background: none; border: none;
-      padding: 0; margin-top: 12px; display: block;
-      font-family: 'Noto Sans TC', sans-serif;
-      transition: color 0.15s;
-    }
-    .settings-toggle:hover { color: var(--brand); }
-    .settings-panel { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-    .settings-panel.open { display: block; }
-    .settings-row { display: flex; gap: 10px; }
-    .field { flex: 1; }
-    .field label { display: block; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 6px; }
-
     /* ── Log ── */
     .log-box {
       background: var(--log-bg);
@@ -356,20 +341,6 @@
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-bar" id="progressBar"></div>
     </div>
-
-    <button class="settings-toggle" onclick="toggleSettings()">⚙ API 設定</button>
-    <div class="settings-panel" id="settingsPanel">
-      <div class="settings-row">
-        <div class="field">
-          <label>API ENDPOINT</label>
-          <input type="text" id="apiEndpoint" placeholder="https://your-app.railway.app" />
-        </div>
-        <div class="field">
-          <label>API SECRET（選填）</label>
-          <input type="password" id="apiSecret" placeholder="Bearer token" />
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Log -->
@@ -412,24 +383,8 @@
 </main>
 
 <script>
-  const SETTINGS_KEY = 'mixxin_tf_settings';
-  const HISTORY_KEY  = 'mixxin_tf_history';
-  let currentFormId  = '';
-
-  function loadSettings() {
-    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-    if (s.endpoint) document.getElementById('apiEndpoint').value = s.endpoint;
-    if (s.secret)   document.getElementById('apiSecret').value   = s.secret;
-  }
-  function saveSettings() {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-      endpoint: document.getElementById('apiEndpoint').value.trim(),
-      secret:   document.getElementById('apiSecret').value.trim(),
-    }));
-  }
-  document.getElementById('apiEndpoint').addEventListener('change', () => { saveSettings(); loadForms(); });
-  document.getElementById('apiSecret').addEventListener('change', saveSettings);
-  function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('open'); }
+  const HISTORY_KEY = 'mixxin_tf_history';
+  let currentFormId = '';
 
   function loadHistory() { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
   function saveHistory(r) { localStorage.setItem(HISTORY_KEY, JSON.stringify(r.slice(0, 20))); }
@@ -479,15 +434,8 @@
   }
 
   async function startExport() {
-    const formId   = document.getElementById('formId').value.trim();
-    const endpoint = document.getElementById('apiEndpoint').value.trim();
-    const secret   = document.getElementById('apiSecret').value.trim();
-
+    const formId = document.getElementById('formId').value.trim();
     if (!formId) { log('⚠ 請輸入 Form ID', 'warn'); return; }
-    if (!endpoint) {
-      log('⚠ 請在「API 設定」填入 Railway endpoint', 'warn');
-      document.getElementById('settingsPanel').classList.add('open'); return;
-    }
 
     currentFormId = formId;
     const btn = document.getElementById('exportBtn');
@@ -498,15 +446,12 @@
     log(`▶ 開始匯出：${formId}`);
     setProgress(10);
 
-    const headers = { 'Content-Type': 'application/json' };
-    if (secret) headers['Authorization'] = `Bearer ${secret}`;
-
     let fakePct = 10;
     const timer = setInterval(() => { fakePct = Math.min(fakePct + Math.random() * 7, 88); setProgress(fakePct); }, 1400);
 
     try {
       log('📥 連線中...');
-      const res = await fetch(`${endpoint}/export`, { method: 'POST', headers, body: JSON.stringify({ form_id: formId }) });
+      const res = await fetch('/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ form_id: formId }) });
       clearInterval(timer);
 
       if (!res.ok) {
@@ -532,19 +477,14 @@
     } catch (e) {
       clearInterval(timer); setProgress(0);
       log(`✕ 無法連線：${e.message}`, 'error');
-      log('請確認 Railway endpoint 是否正確', 'muted');
     } finally {
       btn.disabled = false; btn.innerHTML = '執行';
     }
   }
 
   function downloadCSV(type) {
-    const endpoint = document.getElementById('apiEndpoint').value.trim();
-    const secret   = document.getElementById('apiSecret').value.trim();
-    if (!endpoint || !currentFormId) return;
-    const headers = {};
-    if (secret) headers['Authorization'] = `Bearer ${secret}`;
-    fetch(`${endpoint}/download/${type}?form_id=${currentFormId}`, { headers })
+    if (!currentFormId) return;
+    fetch(`/download/${type}?form_id=${currentFormId}`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const disposition = res.headers.get('Content-Disposition') || '';
@@ -564,25 +504,17 @@
   }
 
   document.getElementById('formId').addEventListener('keydown', e => { if (e.key === 'Enter') startExport(); });
-  loadSettings();
   renderHistory();
   loadForms();
 
   async function loadForms() {
-    const endpoint = document.getElementById('apiEndpoint').value.trim();
-    if (!endpoint) return;
-
-    const secret = document.getElementById('apiSecret').value.trim();
-    const headers = {};
-    if (secret) headers['Authorization'] = `Bearer ${secret}`;
-
     document.getElementById('formSelectWrap').style.display = 'block';
     document.getElementById('divider').style.display = 'block';
     document.getElementById('formListLoading').style.display = 'block';
     document.getElementById('formList').innerHTML = '';
 
     try {
-      const res = await fetch(`${endpoint}/forms`, { headers });
+      const res = await fetch('/forms');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       document.getElementById('formListLoading').style.display = 'none';
@@ -602,7 +534,7 @@
 
     } catch(e) {
       document.getElementById('formListLoading').style.display = 'none';
-      document.getElementById('formList').innerHTML = `<div style="font-size:12px;color:var(--muted);padding:8px 0;">無法載入（先啟動 server）</div>`;
+      document.getElementById('formList').innerHTML = `<div style="font-size:12px;color:var(--muted);padding:8px 0;">無法載入表單列表</div>`;
     }
   }
 
