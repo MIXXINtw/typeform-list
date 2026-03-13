@@ -395,7 +395,7 @@
     if (!records.length) { list.innerHTML = '<div class="history-empty">尚無歷史紀錄</div>'; return; }
     list.innerHTML = records.map(r => `
       <div class="history-item" onclick="loadFromHistory('${r.form_id}','${r.sheet_url}',${r.email_count},${r.phone_count},${r.elapsed})">
-        <span class="history-id">${r.form_id}</span>
+        <span class="history-id">${r.title || r.form_id}</span>
         <span class="history-date">${r.date}</span>
         <span class="history-counts">✉ ${r.email_count} &nbsp;📱 ${r.phone_count}</span>
         <a class="history-dl" href="${r.sheet_url}" target="_blank" onclick="event.stopPropagation()">Sheets ↗</a>
@@ -469,7 +469,7 @@
 
       showResult(data.sheet_url, data.email_count, data.phone_count, data.elapsed_seconds);
       addHistory({
-        form_id: data.form_id,
+        form_id: data.form_id, title: data.form_title,
         date: new Date().toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }),
         email_count: data.email_count, phone_count: data.phone_count,
         elapsed: data.elapsed_seconds, sheet_url: data.sheet_url,

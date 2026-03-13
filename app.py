@@ -209,7 +209,7 @@ def export(req: ExportRequest):
     phone_data = [(r["phone"],) for r in cleaned if r["phone"]]
     _cache[form_id] = {"email_rows": email_data, "phone_rows": phone_data, "timestamp": today, "title": title}
 
-    return {"form_id": form_id, "sheet_url": sheet_url,
+    return {"form_id": form_id, "form_title": title, "sheet_url": sheet_url,
             "email_count": email_count, "phone_count": phone_count,
             "elapsed_seconds": elapsed}
 
