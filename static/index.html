@@ -385,6 +385,7 @@
 <script>
   const HISTORY_KEY = 'mixxin_tf_history';
   let currentFormId = '';
+  const formTitleMap = {};
 
   function loadHistory() { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
   function saveHistory(r) { localStorage.setItem(HISTORY_KEY, JSON.stringify(r.slice(0, 20))); }
@@ -469,7 +470,8 @@
 
       showResult(data.sheet_url, data.email_count, data.phone_count, data.elapsed_seconds);
       addHistory({
-        form_id: data.form_id, title: data.form_title,
+        form_id: data.form_id,
+        title: formTitleMap[data.form_id] || data.form_title || data.form_id,
         date: new Date().toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }),
         email_count: data.email_count, phone_count: data.phone_count,
         elapsed: data.elapsed_seconds, sheet_url: data.sheet_url,
@@ -524,6 +526,7 @@
         return;
       }
 
+      data.forms.forEach(f => { formTitleMap[f.id] = f.title; });
       document.getElementById('formList').innerHTML = data.forms.map(f => {
         const date = f.last_updated_at ? new Date(f.last_updated_at).toLocaleDateString('zh-TW', {month:'2-digit', day:'2-digit'}) : '';
         return `<div class="form-item" onclick="selectForm('${f.id}', this)">
