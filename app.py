@@ -105,12 +105,16 @@ def create_spreadsheet(drive_service, sheets_service, title):
     ).execute()
     spreadsheet_id = result['id']
 
+    # 取得預設工作表的真實 sheetId（不一定是 0）
+    meta = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+    default_sheet_id = meta["sheets"][0]["properties"]["sheetId"]
+
     # 新增 email / phone 分頁，刪除預設 Sheet1
     sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body={
         "requests": [
             {"addSheet": {"properties": {"title": "email"}}},
             {"addSheet": {"properties": {"title": "phone"}}},
-            {"deleteSheet": {"sheetId": 0}},
+            {"deleteSheet": {"sheetId": default_sheet_id}},
         ]
     }).execute()
     return spreadsheet_id
@@ -175,7 +179,7 @@ def get_forms():
         raise HTTPException(status_code=500, detail="未設定 TYPEFORM_TOKEN")
     resp = requests.get("https://api.typeform.com/forms",
         headers={"Authorization": f"Bearer {TYPEFORM_TOKEN}"},
-        params={"page_size": 15}, timeout=15)
+        params={"page_size": 200}, timeout=15)
     resp.raise_for_status()
     items = resp.json().get("items", [])
     return {"forms": [{"id": f["id"], "title": f.get("title", f["id"]),
@@ -196,9 +200,18 @@ def export(req: ExportRequest):
     today     = datetime.now().strftime("%m%d")
     sheet_name = f"{title}_{today}"
 
-    sheets_service, drive_service = get_google_services()
-    spreadsheet_id = create_spreadsheet(drive_service, sheets_service, sheet_name)
-    email_count, phone_count = write_to_sheets(sheets_service, spreadsheet_id, cleaned)
+    try:
+        sheets_service, drive_service = get_google_services()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Google 憑證錯誤：{e}")
+
+    try:
+        spreadsheet_id = create_spreadsheet(drive_service, sheets_service, sheet_name)
+        email_count, phone_count = write_to_sheets(sheets_service, spreadsheet_id, cleaned)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Google Sheets 寫入錯誤：{e}")
 
     elapsed   = round(time.time() - start, 1)
     sheet_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}"

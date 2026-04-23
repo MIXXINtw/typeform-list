@@ -510,7 +510,7 @@
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const disposition = res.headers.get('Content-Disposition') || '';
-        const match = disposition.match(/filename=(.+)/);
+        const match = disposition.match(/filename\*?=(?:UTF-8'')?(.+)/i);
         const filename = match ? match[1] : `TF_${type}_${currentFormId}.csv`;
         return res.blob().then(blob => ({ blob, filename }));
       })
