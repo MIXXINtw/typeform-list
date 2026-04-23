@@ -66,7 +66,7 @@ def fetch_all_responses(form_id):
 def clean_responses(raw):
     seen_email, seen_phone, cleaned = set(), set(), []
     for entry in raw:
-        answers = entry.get("answers", [])
+        answers = entry.get("answers") or []
         email = next((a.get("email","") for a in answers if a.get("type")=="email"), "").lower()
         phone_raw = next((a.get("phone_number","") for a in answers if a.get("type")=="phone_number"), "")
         if phone_raw.startswith("+8860"):   phone = "0" + phone_raw[5:]
