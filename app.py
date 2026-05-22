@@ -265,14 +265,16 @@ def write_to_sheets(sheets_service, spreadsheet_id, cleaned):
         for i, r in enumerate(cleaned) if r["email"]
     ]
 
-    # ── Typeform phone 列（排除已購買電話）──
+    # ── Typeform phone 列（全部，不過濾）──
+    phone_rows = [["phone"]] + [(r["phone"],) for r in cleaned if r["phone"]]
+
+    # ── 已購買名單 email ──
+    purchased_email_rows = [["email"]] + list(_purchased["email_list"])
+
+    # ── 已購買 phone = Typeform phone 排除已購買電話 ──
     phone_rows_all = [r["phone"] for r in cleaned if r["phone"]]
     phone_rows_filtered = [p for p in phone_rows_all if p not in purchased_phones]
-    phone_rows = [["phone"]] + [(p,) for p in phone_rows_filtered]
-
-    # ── 已購買名單 email / phone ──
-    purchased_email_rows = [["email"]] + list(_purchased["email_list"])
-    purchased_phone_rows = [["phone"]]  + list(_purchased["phone_list"])
+    purchased_phone_rows = [["phone"]] + [(p,) for p in phone_rows_filtered]
 
     # 取得各分頁 sheetId，必要時擴展
     meta = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
@@ -411,8 +413,9 @@ def export(req: ExportRequest):
 
     # 暫存供 CSV 下載
     email_data = [(r["email"], i + 1) for i, r in enumerate(cleaned) if r["email"]]
+    phone_data = [(r["phone"],) for r in cleaned if r["phone"]]   # 全部不過濾
     purchased_phones_set = _purchased["phones"]
-    phone_data = [
+    p_phone_data = [
         (r["phone"],) for r in cleaned
         if r["phone"] and r["phone"] not in purchased_phones_set
     ]
@@ -421,7 +424,7 @@ def export(req: ExportRequest):
         "email_rows":    email_data,
         "phone_rows":    phone_data,
         "p_email_rows":  list(_purchased["email_list"]),
-        "p_phone_rows":  list(_purchased["phone_list"]),
+        "p_phone_rows":  p_phone_data,   # Typeform phone 排除已購買
         "timestamp":     today,
         "title":         title,
     }
@@ -453,6 +456,85 @@ def _csv_response(data: bytes, filename: str):
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename*=UTF-8''{requests.utils.quote(filename)}"},
     )
+
+
+class UpdatePurchasedRequest(BaseModel):
+    spreadsheet_id: str
+
+
+@app.post("/update-purchased-sheets")
+def update_purchased_sheets(req: UpdatePurchasedRequest):
+    """
+    在既有的 Google Sheet 上新增/更新已購買分頁：
+      - 已購買 email：已購買名單的 email
+      - 已購買 phone：原 sheet 的 phone 分頁，排除已購買電話
+    不動原有的 email / phone 分頁。
+    """
+    if not _purchased["loaded"]:
+        raise HTTPException(status_code=400, detail="請先上傳已購買名單")
+
+    try:
+        sheets_service, drive_service = get_google_services()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Google 憑證錯誤：{e}")
+
+    spreadsheet_id = req.spreadsheet_id
+
+    try:
+        # 讀取原 phone 分頁（A 欄，跳過標題列）
+        result = sheets_service.spreadsheets().values().get(
+            spreadsheetId=spreadsheet_id,
+            range="'phone'!A:A"
+        ).execute()
+        phone_values = result.get("values", [])
+        all_phones = [row[0] for row in phone_values[1:] if row]
+
+        # 過濾已購買電話
+        filtered_phones = [p for p in all_phones if p not in _purchased["phones"]]
+
+        # 確認哪些分頁已存在
+        meta = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
+        existing = {s["properties"]["title"]: s["properties"]["sheetId"] for s in meta["sheets"]}
+
+        # 不存在就新增
+        add_reqs = [
+            {"addSheet": {"properties": {"title": t}}}
+            for t in ["已購買 email", "已購買 phone"]
+            if t not in existing
+        ]
+        if add_reqs:
+            sheets_service.spreadsheets().batchUpdate(
+                spreadsheetId=spreadsheet_id,
+                body={"requests": add_reqs}
+            ).execute()
+
+        # 清空已存在的分頁（準備覆寫）
+        for tab in ["已購買 email", "已購買 phone"]:
+            if tab in existing:
+                sheets_service.spreadsheets().values().clear(
+                    spreadsheetId=spreadsheet_id, range=f"'{tab}'"
+                ).execute()
+
+        # 寫入資料
+        purchased_email_rows = [["email"]] + list(_purchased["email_list"])
+        purchased_phone_rows = [["phone"]] + [(p,) for p in filtered_phones]
+
+        _batch_write(sheets_service, spreadsheet_id, "已購買 email", purchased_email_rows)
+        _batch_write(sheets_service, spreadsheet_id, "已購買 phone", purchased_phone_rows)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Google Sheets 更新錯誤：{e}")
+
+    p_email = len(_purchased["email_list"])
+    p_phone = len(filtered_phones)
+    print(f"✅ 已購買分頁更新完成：email {p_email} 筆，phone {p_phone} 筆")
+    return {
+        "spreadsheet_id": spreadsheet_id,
+        "purchased_email_count": p_email,
+        "purchased_phone_count": p_phone,
+    }
 
 
 @app.get("/download/email")
