@@ -1,322 +1,374 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MIXXIN — Typeform 名單匯出</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg:        #f0f2f5;
-      --card:      #ffffff;
-      --brand:     #2a7a6f;
-      --brand-lt:  #3a9a8d;
-      --yellow:    #f0b429;
-      --yellow-dk: #d49a10;
-      --text:      #1e2d2b;
-      --text2:     #374845;
-      --muted:     #7a9490;
-      --muted2:    #b0c8c4;
-      --border:    #e5e7eb;
-      --border-lt: #f0f1f3;
-      --tag:       #fef9ec;
-      --success:   #2a7a6f;
-      --error:     #c0392b;
-      --warn:      #e67e22;
-      --log-bg:    #fafbfc;
-      --hover:     #f6f8fa;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIXXIN — Typeform 名單匯出</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f0f2f5;
+  --card: #ffffff;
+  --brand: #2a7a6f;
+  --brand-lt: #3a9a8d;
+  --yellow: #f0b429;
+  --yellow-dk: #d49a10;
+  --text: #1e2d2b;
+  --text2: #374845;
+  --muted: #7a9490;
+  --muted2: #b0c8c4;
+  --border: #e5e7eb;
+  --border-lt: #f0f1f3;
+  --tag: #fef9ec;
+  --success: #2a7a6f;
+  --error: #c0392b;
+  --warn: #e67e22;
+  --log-bg: #fafbfc;
+  --hover: #f6f8fa;
+}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      min-height: 100vh;
-      background: var(--bg);
-      font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 400;
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-    }
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 400;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
 
-    /* ── Header ── */
-    header {
-      background: var(--card);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 40px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .logo {
-      font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      letter-spacing: 0.08em;
-      color: var(--brand);
-    }
-    .logo-sub {
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: 11px;
-      font-weight: 300;
-      color: var(--muted);
-      letter-spacing: 0.12em;
-      margin-top: 1px;
-    }
-    .header-badge {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--muted);
-      background: var(--bg);
-      border: 1px solid var(--border);
-      padding: 5px 12px;
-      border-radius: 6px;
-      letter-spacing: 0.06em;
-    }
+/* ── Header ── */
+header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--brand);
+}
+.logo-sub {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  margin-top: 1px;
+}
+.header-badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 6px;
+  letter-spacing: 0.06em;
+}
 
-    /* ── Main ── */
-    main {
-      flex: 1;
-      max-width: 720px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 28px 24px 60px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
+/* ── Main ── */
+main {
+  flex: 1;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
-    /* ── Page title ── */
-    .page-title {
-      padding: 4px 0;
-    }
-    .page-title .eyebrow {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--yellow-dk);
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .page-title h1 {
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1.3;
-    }
-    .page-title p {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 6px;
-      line-height: 1.6;
-    }
+/* ── Page title ── */
+.page-title { padding: 4px 0; }
+.page-title .eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--yellow-dk);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.page-title h1 {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+.page-title p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.6;
+}
 
-    /* ── Card ── */
-    .card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 24px;
-      border: 1px solid var(--border);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title::before {
+  content: '';
+  display: inline-block;
+  width: 4px; height: 16px;
+  background: var(--yellow);
+  border-radius: 2px;
+}
 
-    .card-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: 0.02em;
-      margin-bottom: 18px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .card-title::before {
-      content: '';
-      display: inline-block;
-      width: 4px; height: 16px;
-      background: var(--yellow);
-      border-radius: 2px;
-    }
+/* ── Input ── */
+.input-wrap { display: flex; gap: 10px; }
 
-    /* ── Input ── */
-    .input-wrap {
-      display: flex; gap: 10px;
-    }
-    input[type="text"], input[type="password"] {
-      flex: 1;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: 14px;
-      padding: 10px 14px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input[type="text"]:focus, input[type="password"]:focus {
-      border-color: var(--brand);
-      box-shadow: 0 0 0 3px rgba(42,122,111,0.08);
-      background: white;
-    }
-    input::placeholder { color: var(--muted2); }
+input[type="text"], input[type="password"] {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type="text"]:focus, input[type="password"]:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(42,122,111,0.08);
+  background: white;
+}
+input::placeholder { color: var(--muted2); }
 
-    /* ── Button ── */
-    .btn-primary {
-      font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 700;
-      font-size: 14px;
-      padding: 10px 24px;
-      background: var(--yellow);
-      color: var(--text);
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-      display: inline-flex; align-items: center; gap: 6px;
-      box-shadow: 0 1px 3px rgba(240,180,41,0.25);
-    }
-    .btn-primary:hover { background: var(--yellow-dk); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(240,180,41,0.35); }
-    .btn-primary:active { transform: translateY(0); }
-    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+/* ── Button ── */
+.btn-primary {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 24px;
+  background: var(--yellow);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px;
+  box-shadow: 0 1px 3px rgba(240,180,41,0.25);
+}
+.btn-primary:hover { background: var(--yellow-dk); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(240,180,41,0.35); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    .btn-open {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%;
-      font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 700;
-      font-size: 14px;
-      padding: 12px 20px;
-      background: var(--brand);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.15s;
-    }
-    .btn-open:hover { background: var(--brand-lt); transform: translateY(-1px); }
+.btn-open {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 20px;
+  background: var(--brand);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.btn-open:hover { background: var(--brand-lt); transform: translateY(-1px); }
 
-    /* ── Progress ── */
-    .progress-wrap { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 14px; display: none; }
-    .progress-wrap.active { display: block; }
-    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--yellow), var(--brand-lt)); border-radius: 2px; width: 0%; transition: width 0.4s ease; }
+/* ── Progress ── */
+.progress-wrap { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 14px; display: none; }
+.progress-wrap.active { display: block; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--yellow), var(--brand-lt)); border-radius: 2px; width: 0%; transition: width 0.4s ease; }
 
-    /* ── Log ── */
-    .log-box {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      max-height: 180px;
-      overflow-y: auto;
-      font-family: 'Noto Sans TC', monospace;
-      font-size: 12px;
-      line-height: 2;
-      display: none;
-    }
-    .log-box.visible { display: block; }
-    .log-box::-webkit-scrollbar { width: 4px; }
-    .log-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .log-entry { display: flex; gap: 10px; }
-    .log-time { color: var(--muted2); flex-shrink: 0; font-size: 11px; }
-    .log-msg.success { color: var(--success); font-weight: 500; }
-    .log-msg.error   { color: var(--error); font-weight: 500; }
-    .log-msg.warn    { color: var(--warn); }
-    .log-msg.muted   { color: var(--muted); }
+/* ── Log ── */
+.log-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  max-height: 180px;
+  overflow-y: auto;
+  font-family: 'Noto Sans TC', monospace;
+  font-size: 12px;
+  line-height: 2;
+  display: none;
+}
+.log-box.visible { display: block; }
+.log-box::-webkit-scrollbar { width: 4px; }
+.log-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.log-entry { display: flex; gap: 10px; }
+.log-time { color: var(--muted2); flex-shrink: 0; font-size: 11px; }
+.log-msg.success { color: var(--success); font-weight: 500; }
+.log-msg.error { color: var(--error); font-weight: 500; }
+.log-msg.warn { color: var(--warn); }
+.log-msg.muted { color: var(--muted); }
 
-    /* ── Result ── */
-    .result-section { display: none; }
-    .result-section.visible { display: flex; flex-direction: column; gap: 16px; }
+/* ── Result ── */
+.result-section { display: none; }
+.result-section.visible { display: flex; flex-direction: column; gap: 16px; }
 
-    .stats-row { display: flex; gap: 12px; }
-    .stat {
-      flex: 1;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 18px;
-      text-align: center;
-    }
-    .stat-num {
-      font-family: 'Noto Sans TC', sans-serif;
-      font-size: 28px; font-weight: 700;
-      color: var(--brand);
-      display: block;
-      line-height: 1;
-    }
-    .stat-label {
-      font-size: 11px; font-weight: 500;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      margin-top: 6px;
-      display: block;
-    }
-    .stat.time .stat-num { color: var(--yellow-dk); }
+.stats-row { display: flex; gap: 12px; flex-wrap: wrap; }
 
-    /* ── CSV Buttons ── */
-    .btn-csv {
-      flex: 1;
-      font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 600;
-      font-size: 13px;
-      padding: 11px;
-      background: var(--card);
-      color: var(--brand);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .btn-csv:hover { background: #f0faf8; border-color: var(--brand); }
+.stat {
+  flex: 1;
+  min-width: 120px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  text-align: center;
+}
+.stat-num {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 28px; font-weight: 700;
+  color: var(--brand);
+  display: block;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 11px; font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  margin-top: 6px;
+  display: block;
+}
+.stat.time .stat-num { color: var(--yellow-dk); }
+.stat.purchased .stat-num { color: #9333ea; }
+.stat.purchased { border-color: #e9d5ff; background: #fdf4ff; }
 
-    /* ── History ── */
-    .history-list { display: flex; flex-direction: column; gap: 6px; }
-    .history-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 11px 14px;
-      background: var(--hover);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.12s;
-    }
-    .history-item:hover { border-color: var(--brand-lt); background: white; }
-    .history-id { color: var(--text); font-weight: 600; min-width: 90px; }
-    .history-date { color: var(--muted); min-width: 90px; }
-    .history-counts { color: var(--text2); flex: 1; }
-    .history-dl {
-      color: var(--brand); text-decoration: none; font-size: 11px;
-      padding: 4px 10px; border: 1px solid var(--border);
-      border-radius: 6px; transition: all 0.15s; white-space: nowrap;
-      font-weight: 600;
-    }
-    .history-dl:hover { border-color: var(--brand); background: #f0faf8; }
-    .history-empty { color: var(--muted2); font-size: 12px; text-align: center; padding: 20px; }
+/* ── CSV Buttons ── */
+.csv-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
-    /* ── Spinner ── */
-    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(30,45,43,0.2); border-top-color: var(--text); border-radius: 50%; animation: spin 0.6s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+.btn-csv {
+  flex: 1;
+  min-width: 140px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 11px;
+  background: var(--card);
+  color: var(--brand);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-csv:hover { background: #f0faf8; border-color: var(--brand); }
+.btn-csv.purchased {
+  color: #9333ea;
+  border-color: #e9d5ff;
+  background: #fdf4ff;
+}
+.btn-csv.purchased:hover { background: #f5e8ff; border-color: #9333ea; }
 
-    .form-item {
-      display: flex; flex-direction: column; gap: 2px;
-      padding: 10px 14px;
-      background: var(--hover);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.12s;
-    }
-    .form-item:hover { border-color: var(--brand-lt); background: white; }
-    .form-item.selected { border-color: var(--brand); background: #f0faf8; box-shadow: 0 0 0 2px rgba(42,122,111,0.08); }
-    .form-item-title { font-size: 13px; font-weight: 500; color: var(--text); }
-    .form-item-meta { font-size: 11px; color: var(--muted); font-family: monospace; }
+/* ── 已購買名單上傳 ── */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  background: var(--bg);
+}
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--brand-lt);
+  background: #f0faf8;
+}
+.upload-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.upload-zone .uz-icon { font-size: 1.6rem; margin-bottom: 6px; }
+.upload-zone .uz-text { font-size: 13px; color: var(--text2); font-weight: 500; }
+.upload-zone .uz-hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
-    @media (max-width: 600px) {
-      header { padding: 14px 16px; }
-      main { padding: 16px 16px 48px; }
-      .stats-row { flex-direction: column; }
-    }
-  </style>
+.purchased-badge {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #166534;
+}
+.purchased-badge.visible { display: flex; }
+.purchased-badge .dot {
+  width: 7px; height: 7px;
+  background: #22c55e;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── History ── */
+.history-list { display: flex; flex-direction: column; gap: 6px; }
+.history-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px;
+  background: var(--hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.history-item:hover { border-color: var(--brand-lt); background: white; }
+.history-id { color: var(--text); font-weight: 600; min-width: 90px; }
+.history-date { color: var(--muted); min-width: 90px; }
+.history-counts { color: var(--text2); flex: 1; }
+.history-dl {
+  color: var(--brand); text-decoration: none; font-size: 11px;
+  padding: 4px 10px; border: 1px solid var(--border);
+  border-radius: 6px; transition: all 0.15s; white-space: nowrap;
+  font-weight: 600;
+}
+.history-dl:hover { border-color: var(--brand); background: #f0faf8; }
+.history-empty { color: var(--muted2); font-size: 12px; text-align: center; padding: 20px; }
+
+/* ── Spinner ── */
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(30,45,43,0.2); border-top-color: var(--text); border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.form-item {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 10px 14px;
+  background: var(--hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.form-item:hover { border-color: var(--brand-lt); background: white; }
+.form-item.selected { border-color: var(--brand); background: #f0faf8; box-shadow: 0 0 0 2px rgba(42,122,111,0.08); }
+.form-item-title { font-size: 13px; font-weight: 500; color: var(--text); }
+.form-item-meta { font-size: 11px; color: var(--muted); font-family: monospace; }
+
+@media (max-width: 600px) {
+  header { padding: 14px 16px; }
+  main { padding: 16px 16px 48px; }
+  .stats-row { flex-direction: column; }
+  .csv-row { flex-direction: column; }
+}
+</style>
 </head>
 <body>
 
@@ -329,20 +381,22 @@
 </header>
 
 <main>
-
   <div class="page-title">
     <div class="eyebrow">MIXXIN FORM</div>
     <h1>名單匯出工具</h1>
     <p>貼上 Typeform Form ID，自動整理 email 與電話名單，匯出至 Google Sheet。</p>
   </div>
 
-  <!-- 主要操作 -->
+  <!-- ── 主要操作 ── -->
   <div class="card">
     <div class="card-title">匯出名單</div>
 
     <!-- 選單區 -->
     <div id="formSelectWrap" style="margin-bottom:14px; display:none;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;"><label style="font-size:11px; font-weight:500; color:var(--muted); letter-spacing:0.06em;">近期表單</label><button onclick="loadForms()" style="font-size:11px; color:var(--brand); background:none; border:none; cursor:pointer; padding:0; font-family:'Noto Sans TC',sans-serif; font-weight:600;">↻ 重新載入</button></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;">
+        <label style="font-size:11px; font-weight:500; color:var(--muted); letter-spacing:0.06em;">近期表單</label>
+        <button onclick="loadForms()" style="font-size:11px; color:var(--brand); background:none; border:none; cursor:pointer; padding:0; font-family:'Noto Sans TC',sans-serif; font-weight:600;">↻ 重新載入</button>
+      </div>
       <div id="formList" style="display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto;"></div>
       <div id="formListLoading" style="font-size:12px; color:var(--muted); padding:12px 0; text-align:center;">載入中...</div>
     </div>
@@ -376,19 +430,47 @@
         <span class="stat-num" id="statPhone">—</span>
         <span class="stat-label">PHONE 筆數</span>
       </div>
+      <!-- 已購買統計（有載入名單才顯示）-->
+      <div class="stat purchased" id="statPEmailBox" style="display:none;">
+        <span class="stat-num" id="statPEmail">—</span>
+        <span class="stat-label">已購買 EMAIL</span>
+      </div>
+      <div class="stat purchased" id="statPPhoneBox" style="display:none;">
+        <span class="stat-num" id="statPPhone">—</span>
+        <span class="stat-label">已購買 PHONE</span>
+      </div>
       <div class="stat time">
         <span class="stat-num" id="statTime">—</span>
         <span class="stat-label">執行秒數</span>
       </div>
     </div>
 
-    <div style="display:flex; gap:10px; margin-bottom:10px;">
+    <!-- CSV 下載按鈕 -->
+    <div class="csv-row">
       <button class="btn-csv" onclick="downloadCSV('email')">✉ 下載 Email CSV</button>
       <button class="btn-csv" onclick="downloadCSV('phone')">📱 下載 Phone CSV</button>
+      <button class="btn-csv purchased" id="btnDlPEmail" onclick="downloadCSV('purchased-email')" style="display:none;">🛒 已購買 Email CSV</button>
+      <button class="btn-csv purchased" id="btnDlPPhone" onclick="downloadCSV('purchased-phone')" style="display:none;">🛒 已購買 Phone CSV</button>
     </div>
+
     <a class="btn-open" id="btnOpenSheet" href="#" target="_blank" style="display:none;">
       ↗ &nbsp;開啟 Google Sheet
     </a>
+  </div>
+
+  <!-- ── 已購買名單上傳 ── -->
+  <div class="card">
+    <div class="card-title">已購買名單（選填）</div>
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" accept=".csv" id="purchasedFile" />
+      <div class="uz-icon">📄</div>
+      <div class="uz-text" id="uzText">點擊或拖曳已購買名單 CSV</div>
+      <div class="uz-hint" id="uzHint">需含「電子信箱」與「聯絡電話」欄位（如 Zeczec 訂單匯出）</div>
+    </div>
+    <div class="purchased-badge" id="purchasedBadge">
+      <div class="dot"></div>
+      <span id="purchasedBadgeText">—</span>
+    </div>
   </div>
 
   <!-- 歷史紀錄 -->
@@ -398,176 +480,282 @@
       <div class="history-empty">尚無歷史紀錄</div>
     </div>
   </div>
-
 </main>
 
 <script>
-  const HISTORY_KEY = 'mixxin_tf_history';
-  let currentFormId = '';
-  const formTitleMap = {};
+const HISTORY_KEY = 'mixxin_tf_history';
+let currentFormId = '';
+const formTitleMap = {};
 
-  function loadHistory() { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
-  function saveHistory(r) { localStorage.setItem(HISTORY_KEY, JSON.stringify(r.slice(0, 20))); }
-  function addHistory(r) { const h = loadHistory(); h.unshift(r); saveHistory(h); renderHistory(); }
-  function renderHistory() {
-    const list = document.getElementById('historyList');
-    const records = loadHistory();
-    if (!records.length) { list.innerHTML = '<div class="history-empty">尚無歷史紀錄</div>'; return; }
-    list.innerHTML = records.map(r => `
-      <div class="history-item" onclick="loadFromHistory('${r.form_id}','${r.sheet_url}',${r.email_count},${r.phone_count},${r.elapsed})">
-        <span class="history-id">${r.title || r.form_id}</span>
-        <span class="history-date">${r.date}</span>
-        <span class="history-counts">✉ ${r.email_count} &nbsp;📱 ${r.phone_count}</span>
-        <a class="history-dl" href="${r.sheet_url}" target="_blank" onclick="event.stopPropagation()">Sheets ↗</a>
-      </div>
-    `).join('');
+/* ── 歷史紀錄 ── */
+function loadHistory() { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+function saveHistory(r) { localStorage.setItem(HISTORY_KEY, JSON.stringify(r.slice(0, 20))); }
+function addHistory(r)  { const h = loadHistory(); h.unshift(r); saveHistory(h); renderHistory(); }
+
+function renderHistory() {
+  const list    = document.getElementById('historyList');
+  const records = loadHistory();
+  if (!records.length) { list.innerHTML = '<div class="history-empty">尚無歷史紀錄</div>'; return; }
+  list.innerHTML = records.map(r => `
+    <div class="history-item" onclick="loadFromHistory('${r.form_id}','${r.sheet_url}',${r.email_count},${r.phone_count},${r.elapsed})">
+      <span class="history-id">${r.title || r.form_id}</span>
+      <span class="history-date">${r.date}</span>
+      <span class="history-counts">✉ ${r.email_count} &nbsp;📱 ${r.phone_count}</span>
+      <a class="history-dl" href="${r.sheet_url}" target="_blank" onclick="event.stopPropagation()">Sheets ↗</a>
+    </div>
+  `).join('');
+}
+
+function loadFromHistory(formId, sheetUrl, emailCount, phoneCount, elapsed) {
+  currentFormId = formId;
+  document.getElementById('formId').value = formId;
+  showResult(sheetUrl, emailCount, phoneCount, elapsed, 0, 0);
+}
+
+/* ── Log ── */
+function log(msg, type = '') {
+  const box = document.getElementById('logBox');
+  box.classList.add('visible');
+  const now = new Date().toTimeString().slice(0, 8);
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  div.innerHTML = `<span class="log-time">${now}</span><span class="log-msg ${type}">${msg}</span>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+function clearLog() { const b = document.getElementById('logBox'); b.innerHTML = ''; b.classList.remove('visible'); }
+
+/* ── Progress ── */
+function setProgress(pct) {
+  document.getElementById('progressWrap').classList.toggle('active', pct > 0 && pct < 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+/* ── 顯示結果 ── */
+function showResult(sheetUrl, emailCount, phoneCount, elapsed, pEmailCount, pPhoneCount) {
+  document.getElementById('btnOpenSheet').href = sheetUrl;
+  document.getElementById('btnOpenSheet').style.display = 'flex';
+  document.getElementById('statEmail').textContent = emailCount;
+  document.getElementById('statPhone').textContent = phoneCount;
+  document.getElementById('statTime').textContent  = elapsed;
+
+  const hasPurchased = pEmailCount > 0 || pPhoneCount > 0;
+  document.getElementById('statPEmail').textContent    = pEmailCount;
+  document.getElementById('statPPhone').textContent    = pPhoneCount;
+  document.getElementById('statPEmailBox').style.display = hasPurchased ? '' : 'none';
+  document.getElementById('statPPhoneBox').style.display = hasPurchased ? '' : 'none';
+  document.getElementById('btnDlPEmail').style.display   = hasPurchased ? '' : 'none';
+  document.getElementById('btnDlPPhone').style.display   = hasPurchased ? '' : 'none';
+
+  document.getElementById('resultSection').classList.add('visible');
+}
+
+/* ── 已購買名單上傳 ── */
+async function handlePurchasedUpload(file) {
+  if (!file || !file.name.toLowerCase().endsWith('.csv')) {
+    log('⚠ 請選擇 .csv 檔案', 'warn'); return;
   }
-  function loadFromHistory(formId, sheetUrl, emailCount, phoneCount, elapsed) {
-    currentFormId = formId;
-    document.getElementById('formId').value = formId;
-    showResult(sheetUrl, emailCount, phoneCount, elapsed);
+  document.getElementById('uzText').textContent = '上傳中…';
+  document.getElementById('uzHint').textContent = '';
+
+  const form = new FormData();
+  form.append('file', file);
+
+  try {
+    const res  = await fetch('/upload-purchased', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || '上傳失敗');
+
+    document.getElementById('uzText').textContent = '✅ ' + file.name;
+    document.getElementById('uzHint').textContent = `${data.email_count} 封 email・${data.phone_count} 支電話`;
+
+    const badge = document.getElementById('purchasedBadge');
+    badge.classList.add('visible');
+    document.getElementById('purchasedBadgeText').innerHTML =
+      `已載入已購買名單：<strong>${data.email_count}</strong> 封 email、<strong>${data.phone_count}</strong> 支電話（Phone 匯出將自動排除這些號碼）`;
+
+    log(`✔ 已購買名單載入：${data.email_count} email / ${data.phone_count} 電話`, 'success');
+  } catch (err) {
+    document.getElementById('uzText').textContent = '點擊或拖曳已購買名單 CSV';
+    document.getElementById('uzHint').textContent = '需含「電子信箱」與「聯絡電話」欄位（如 Zeczec 訂單匯出）';
+    log(`✕ 已購買名單上傳失敗：${err.message}`, 'error');
   }
+}
 
-  function log(msg, type = '') {
-    const box = document.getElementById('logBox');
-    box.classList.add('visible');
-    const now = new Date().toTimeString().slice(0, 8);
-    const div = document.createElement('div');
-    div.className = 'log-entry';
-    div.innerHTML = `<span class="log-time">${now}</span><span class="log-msg ${type}">${msg}</span>`;
-    box.appendChild(div);
-    box.scrollTop = box.scrollHeight;
-  }
-  function clearLog() { const b = document.getElementById('logBox'); b.innerHTML = ''; b.classList.remove('visible'); }
+document.getElementById('purchasedFile').addEventListener('change', e => {
+  if (e.target.files[0]) handlePurchasedUpload(e.target.files[0]);
+});
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover',  e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) handlePurchasedUpload(e.dataTransfer.files[0]);
+});
 
-  function setProgress(pct) {
-    document.getElementById('progressWrap').classList.toggle('active', pct > 0 && pct < 100);
-    document.getElementById('progressBar').style.width = pct + '%';
-  }
+/* ── 匯出 ── */
+async function startExport() {
+  const formId = document.getElementById('formId').value.trim();
+  if (!formId) { log('⚠ 請輸入 Form ID', 'warn'); return; }
 
-  function showResult(sheetUrl, emailCount, phoneCount, elapsed) {
-    document.getElementById('btnOpenSheet').href = sheetUrl;
-    document.getElementById('btnOpenSheet').style.display = 'flex';
-    document.getElementById('statEmail').textContent = emailCount;
-    document.getElementById('statPhone').textContent = phoneCount;
-    document.getElementById('statTime').textContent  = elapsed;
-    document.getElementById('resultSection').classList.add('visible');
-  }
+  currentFormId = formId;
+  const btn = document.getElementById('exportBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 執行中';
+  document.getElementById('resultSection').classList.remove('visible');
+  clearLog();
+  log(`▶ 開始匯出：${formTitleMap[formId] || formId}`);
+  setProgress(10);
 
-  async function startExport() {
-    const formId = document.getElementById('formId').value.trim();
-    if (!formId) { log('⚠ 請輸入 Form ID', 'warn'); return; }
+  let fakePct = 10;
+  const timer = setInterval(() => {
+    fakePct = Math.min(fakePct + Math.random() * 7, 88);
+    setProgress(fakePct);
+  }, 1400);
 
-    currentFormId = formId;
-    const btn = document.getElementById('exportBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> 執行中';
-    document.getElementById('resultSection').classList.remove('visible');
-    clearLog();
-    log(`▶ 開始匯出：${formTitleMap[formId] || formId}`);
-    setProgress(10);
+  try {
+    log('📥 連線中...');
+    const res = await fetch('/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ form_id: formId }),
+    });
+    clearInterval(timer);
 
-    let fakePct = 10;
-    const timer = setInterval(() => { fakePct = Math.min(fakePct + Math.random() * 7, 88); setProgress(fakePct); }, 1400);
-
-    try {
-      log('📥 連線中...');
-      const res = await fetch('/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ form_id: formId }) });
-      clearInterval(timer);
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: res.statusText }));
-        log(`✕ 錯誤 ${res.status}：${err.detail || '未知錯誤'}`, 'error');
-        setProgress(0); return;
-      }
-
-      const data = await res.json();
-      setProgress(100);
-      setTimeout(() => setProgress(0), 600);
-
-      log(`✔ 完成！Email ${data.email_count} 筆，Phone ${data.phone_count} 筆`, 'success');
-      log(`⏱ 耗時 ${data.elapsed_seconds} 秒`, 'muted');
-
-      showResult(data.sheet_url, data.email_count, data.phone_count, data.elapsed_seconds);
-      addHistory({
-        form_id: data.form_id,
-        title: formTitleMap[data.form_id] || data.form_title || data.form_id,
-        date: new Date().toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }),
-        email_count: data.email_count, phone_count: data.phone_count,
-        elapsed: data.elapsed_seconds, sheet_url: data.sheet_url,
-      });
-    } catch (e) {
-      clearInterval(timer); setProgress(0);
-      log(`✕ 無法連線：${e.message}`, 'error');
-    } finally {
-      btn.disabled = false; btn.innerHTML = '執行';
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      log(`✕ 錯誤 ${res.status}：${err.detail || '未知錯誤'}`, 'error');
+      setProgress(0); return;
     }
+
+    const data = await res.json();
+    setProgress(100);
+    setTimeout(() => setProgress(0), 600);
+
+    const pEmail = data.purchased_email_count ?? 0;
+    const pPhone = data.purchased_phone_count ?? 0;
+
+    log(`✔ 完成！Email ${data.email_count} 筆，Phone ${data.phone_count} 筆`, 'success');
+    if (pEmail || pPhone) {
+      log(`🛒 已購買名單：Email ${pEmail} 筆，Phone ${pPhone} 筆`, 'muted');
+    }
+    log(`⏱ 耗時 ${data.elapsed_seconds} 秒`, 'muted');
+
+    showResult(data.sheet_url, data.email_count, data.phone_count, data.elapsed_seconds, pEmail, pPhone);
+
+    addHistory({
+      form_id:     data.form_id,
+      title:       formTitleMap[data.form_id] || data.form_title || data.form_id,
+      date:        new Date().toLocaleString('zh-TW', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }),
+      email_count: data.email_count,
+      phone_count: data.phone_count,
+      elapsed:     data.elapsed_seconds,
+      sheet_url:   data.sheet_url,
+    });
+
+  } catch (e) {
+    clearInterval(timer); setProgress(0);
+    log(`✕ 無法連線：${e.message}`, 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '執行';
   }
+}
 
-  function downloadCSV(type) {
-    if (!currentFormId) return;
-    fetch(`/download/${type}?form_id=${currentFormId}`)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const disposition = res.headers.get('Content-Disposition') || '';
-        const match = disposition.match(/filename\*?=(?:UTF-8'')?(.+)/i);
-        const filename = match ? match[1] : `TF_${type}_${currentFormId}.csv`;
-        return res.blob().then(blob => ({ blob, filename }));
-      })
-      .then(({ blob, filename }) => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        log(`✔ ${type === 'email' ? 'Email' : 'Phone'} CSV 下載完成`, 'success');
-      })
-      .catch(e => log(`✕ 下載失敗：${e.message}`, 'error'));
-  }
+/* ── CSV 下載 ── */
+function downloadCSV(type) {
+  if (!currentFormId) return;
+  const endpoint = type.startsWith('purchased')
+    ? `/download/${type}?form_id=${currentFormId}`
+    : `/download/${type}?form_id=${currentFormId}`;
 
-  document.getElementById('formId').addEventListener('keydown', e => { if (e.key === 'Enter') startExport(); });
-  renderHistory();
-  loadForms();
-
-  async function loadForms() {
-    document.getElementById('formSelectWrap').style.display = 'block';
-    document.getElementById('divider').style.display = 'block';
-    document.getElementById('formListLoading').style.display = 'block';
-    document.getElementById('formList').innerHTML = '';
-
-    try {
-      const res = await fetch('/forms');
+  fetch(endpoint)
+    .then(res => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      document.getElementById('formListLoading').style.display = 'none';
+      const disposition = res.headers.get('Content-Disposition') || '';
+      const match = disposition.match(/filename\*?=(?:UTF-8'')?(.+)/i);
+      const filename = match ? decodeURIComponent(match[1]) : `TF_${type}_${currentFormId}.csv`;
+      return res.blob().then(blob => ({ blob, filename }));
+    })
+    .then(({ blob, filename }) => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      const label = {
+        'email':           'Email',
+        'phone':           'Phone',
+        'purchased-email': '已購買 Email',
+        'purchased-phone': '已購買 Phone',
+      }[type] || type;
+      log(`✔ ${label} CSV 下載完成`, 'success');
+    })
+    .catch(e => log(`✕ 下載失敗：${e.message}`, 'error'));
+}
 
-      if (!data.forms.length) {
-        document.getElementById('formList').innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 0;">沒有找到表單</div>';
-        return;
-      }
+document.getElementById('formId').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startExport();
+});
 
-      data.forms.forEach(f => { formTitleMap[f.id] = f.title; });
-      document.getElementById('formList').innerHTML = data.forms.map(f => {
-        const date = f.last_updated_at ? new Date(f.last_updated_at).toLocaleDateString('zh-TW', {month:'2-digit', day:'2-digit'}) : '';
-        return `<div class="form-item" onclick="selectForm('${f.id}', this)">
-          <span class="form-item-title">${f.title}</span>
-          <span class="form-item-meta">${f.id}${date ? ' · ' + date : ''}</span>
-        </div>`;
-      }).join('');
+/* ── 初始化 ── */
+renderHistory();
+loadForms();
 
-    } catch(e) {
-      document.getElementById('formListLoading').style.display = 'none';
-      document.getElementById('formList').innerHTML = `<div style="font-size:12px;color:var(--muted);padding:8px 0;">無法載入表單列表</div>`;
+// 檢查伺服器是否已有暫存的已購買名單
+fetch('/purchased-status').then(r => r.json()).then(data => {
+  if (data.loaded) {
+    document.getElementById('purchasedBadge').classList.add('visible');
+    document.getElementById('purchasedBadgeText').innerHTML =
+      `已載入已購買名單：<strong>${data.email_count}</strong> 封 email、<strong>${data.phone_count}</strong> 支電話`;
+    document.getElementById('uzText').textContent = '✅ 已載入（伺服器暫存）';
+    document.getElementById('uzHint').textContent = '可重新上傳以更新名單';
+  }
+}).catch(() => {});
+
+async function loadForms() {
+  document.getElementById('formSelectWrap').style.display = 'block';
+  document.getElementById('divider').style.display = 'block';
+  document.getElementById('formListLoading').style.display = 'block';
+  document.getElementById('formList').innerHTML = '';
+
+  try {
+    const res = await fetch('/forms');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    document.getElementById('formListLoading').style.display = 'none';
+
+    if (!data.forms.length) {
+      document.getElementById('formList').innerHTML =
+        '<div style="font-size:12px;color:var(--muted);padding:8px 0;">沒有找到表單</div>';
+      return;
     }
-  }
 
-  function selectForm(formId, el) {
-    document.getElementById('formId').value = formId;
-    document.querySelectorAll('.form-item').forEach(e => e.classList.remove('selected'));
-    el.classList.add('selected');
-  }
+    data.forms.forEach(f => { formTitleMap[f.id] = f.title; });
+    document.getElementById('formList').innerHTML = data.forms.map(f => {
+      const date = f.last_updated_at
+        ? new Date(f.last_updated_at).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' })
+        : '';
+      return `<div class="form-item" onclick="selectForm('${f.id}', this)">
+        <span class="form-item-title">${f.title}</span>
+        <span class="form-item-meta">${f.id}${date ? ' · ' + date : ''}</span>
+      </div>`;
+    }).join('');
 
+  } catch(e) {
+    document.getElementById('formListLoading').style.display = 'none';
+    document.getElementById('formList').innerHTML =
+      `<div style="font-size:12px;color:var(--muted);padding:8px 0;">無法載入表單列表</div>`;
+  }
+}
+
+function selectForm(formId, el) {
+  document.getElementById('formId').value = formId;
+  document.querySelectorAll('.form-item').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
 </script>
+
 <script src="https://auth.mixxin.tw/gate/gate.js"></script>
 </body>
 </html>
