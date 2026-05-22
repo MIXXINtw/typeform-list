@@ -342,6 +342,16 @@ input::placeholder { color: var(--muted2); }
   font-weight: 600;
 }
 .history-dl:hover { border-color: var(--brand); background: #f0faf8; }
+.history-update-btn {
+  font-size: 11px; font-weight: 600; font-family: 'Noto Sans TC', sans-serif;
+  color: #7c3aed; background: none;
+  border: 1px solid #ddd6fe; border-radius: 6px;
+  padding: 4px 10px; cursor: pointer; transition: all 0.12s;
+  white-space: nowrap;
+}
+.history-update-btn:hover:not(:disabled) { border-color: #7c3aed; background: #f5f3ff; }
+.history-update-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.history-update-btn.loading { opacity: 0.7; cursor: not-allowed; }
 .history-empty { color: var(--muted2); font-size: 12px; text-align: center; padding: 20px; }
 
 /* ── Spinner ── */
@@ -486,6 +496,7 @@ input::placeholder { color: var(--muted2); }
 const HISTORY_KEY = 'mixxin_tf_history';
 let currentFormId = '';
 const formTitleMap = {};
+let _purchasedLoaded = false;
 
 /* ── 歷史紀錄 ── */
 function loadHistory() { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
@@ -496,11 +507,18 @@ function renderHistory() {
   const list    = document.getElementById('historyList');
   const records = loadHistory();
   if (!records.length) { list.innerHTML = '<div class="history-empty">尚無歷史紀錄</div>'; return; }
-  list.innerHTML = records.map(r => `
+  list.innerHTML = records.map((r, idx) => `
     <div class="history-item" onclick="loadFromHistory('${r.form_id}','${r.sheet_url}',${r.email_count},${r.phone_count},${r.elapsed})">
       <span class="history-id">${r.title || r.form_id}</span>
       <span class="history-date">${r.date}</span>
       <span class="history-counts">✉ ${r.email_count} &nbsp;📱 ${r.phone_count}</span>
+      <button
+        id="upd-btn-${idx}"
+        class="history-update-btn"
+        ${_purchasedLoaded ? '' : 'disabled'}
+        title="${_purchasedLoaded ? '將已購買名單寫入此 Sheet' : '請先上傳已購買名單 CSV'}"
+        onclick="event.stopPropagation(); updatePurchasedForHistory('${r.sheet_url}', ${idx})"
+      >🔄 更新已購買</button>
       <a class="history-dl" href="${r.sheet_url}" target="_blank" onclick="event.stopPropagation()">Sheets ↗</a>
     </div>
   `).join('');
@@ -575,6 +593,8 @@ async function handlePurchasedUpload(file) {
       `已載入已購買名單：<strong>${data.email_count}</strong> 封 email、<strong>${data.phone_count}</strong> 支電話（Phone 匯出將自動排除這些號碼）`;
 
     log(`✔ 已購買名單載入：${data.email_count} email / ${data.phone_count} 電話`, 'success');
+    _purchasedLoaded = true;
+    renderHistory(); // 重新渲染讓按鈕從灰色變為可點擊
   } catch (err) {
     document.getElementById('uzText').textContent = '點擊或拖曳已購買名單 CSV';
     document.getElementById('uzHint').textContent = '需含「電子信箱」與「聯絡電話」欄位（如 Zeczec 訂單匯出）';
@@ -662,6 +682,33 @@ async function startExport() {
   }
 }
 
+/* ── 更新既有 Sheet 的已購買分頁 ── */
+async function updatePurchasedForHistory(sheetUrl, idx) {
+  // 從 sheet URL 取出 spreadsheet_id
+  const match = sheetUrl.match(/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (!match) { log('✕ 無法解析 Sheet URL', 'error'); return; }
+  const spreadsheetId = match[1];
+
+  const btn = document.getElementById(`upd-btn-${idx}`);
+  if (btn) { btn.disabled = true; btn.classList.add('loading'); btn.textContent = '更新中…'; }
+
+  try {
+    const res = await fetch('/update-purchased-sheets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ spreadsheet_id: spreadsheetId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || '更新失敗');
+
+    log(`✔ 已購買分頁更新完成：Email ${data.purchased_email_count} 筆，Phone ${data.purchased_phone_count} 筆`, 'success');
+    if (btn) { btn.textContent = '✅ 已更新'; }
+  } catch (err) {
+    log(`✕ 更新失敗：${err.message}`, 'error');
+    if (btn) { btn.disabled = false; btn.classList.remove('loading'); btn.textContent = '🔄 更新已購買'; }
+  }
+}
+
 /* ── CSV 下載 ── */
 function downloadCSV(type) {
   if (!currentFormId) return;
@@ -705,11 +752,13 @@ loadForms();
 // 檢查伺服器是否已有暫存的已購買名單
 fetch('/purchased-status').then(r => r.json()).then(data => {
   if (data.loaded) {
+    _purchasedLoaded = true;
     document.getElementById('purchasedBadge').classList.add('visible');
     document.getElementById('purchasedBadgeText').innerHTML =
       `已載入已購買名單：<strong>${data.email_count}</strong> 封 email、<strong>${data.phone_count}</strong> 支電話`;
     document.getElementById('uzText').textContent = '✅ 已載入（伺服器暫存）';
     document.getElementById('uzHint').textContent = '可重新上傳以更新名單';
+    renderHistory(); // 已有暫存時也啟用按鈕
   }
 }).catch(() => {});
 
