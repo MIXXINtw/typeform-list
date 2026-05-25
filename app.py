@@ -203,7 +203,7 @@ def create_spreadsheet(drive_service, sheets_service, title):
             {"addSheet": {"properties": {"title": "email"}}},
             {"addSheet": {"properties": {"title": "phone"}}},
             {"addSheet": {"properties": {"title": "已購買 email"}}},
-            {"addSheet": {"properties": {"title": "已購買 phone"}}},
+            {"addSheet": {"properties": {"title": "排除已購買 phone"}}},
             {"deleteSheet": {"sheetId": default_sheet_id}},
         ]},
     ).execute()
@@ -254,7 +254,7 @@ def write_to_sheets(sheets_service, spreadsheet_id, cleaned):
       email        → Typeform 全部 email（含標題列）
       phone        → Typeform phone，排除已購買名單的電話
       已購買 email  → 已購買名單的 email
-      已購買 phone  → 已購買名單的 phone
+      排除已購買 phone  → 已購買名單的 phone
     """
     purchased_phones = _purchased["phones"]
     purchased_emails = _purchased["emails"]
@@ -268,10 +268,12 @@ def write_to_sheets(sheets_service, spreadsheet_id, cleaned):
     # ── Typeform phone 列（全部，不過濾）──
     phone_rows = [["phone"]] + [(r["phone"],) for r in cleaned if r["phone"]]
 
-    # ── 已購買名單 email ──
-    purchased_email_rows = [["email"]] + list(_purchased["email_list"])
+    # ── 已購買名單 email（含 Name 編號欄）──
+    purchased_email_rows = [["email", "Name"]] + [
+        (email, i + 1) for i, (email,) in enumerate(_purchased["email_list"])
+    ]
 
-    # ── 已購買 phone = Typeform phone 排除已購買電話 ──
+    # ── 排除已購買 phone = Typeform phone 排除已購買電話 ──
     phone_rows_all = [r["phone"] for r in cleaned if r["phone"]]
     phone_rows_filtered = [p for p in phone_rows_all if p not in purchased_phones]
     purchased_phone_rows = [["phone"]] + [(p,) for p in phone_rows_filtered]
@@ -284,7 +286,7 @@ def write_to_sheets(sheets_service, spreadsheet_id, cleaned):
         ("email",        email_rows),
         ("phone",        phone_rows),
         ("已購買 email", purchased_email_rows),
-        ("已購買 phone", purchased_phone_rows),
+        ("排除已購買 phone", purchased_phone_rows),
     ]:
         _expand_sheet(sheets_service, spreadsheet_id, sheet_map, title, len(rows))
 
@@ -296,7 +298,7 @@ def write_to_sheets(sheets_service, spreadsheet_id, cleaned):
         ("email",        email_rows),
         ("phone",        phone_rows),
         ("已購買 email", purchased_email_rows),
-        ("已購買 phone", purchased_phone_rows),
+        ("排除已購買 phone", purchased_phone_rows),
     ]:
         _batch_write(sheets_service, spreadsheet_id, title, rows, batch_size)
 
@@ -467,7 +469,7 @@ def update_purchased_sheets(req: UpdatePurchasedRequest):
     """
     在既有的 Google Sheet 上新增/更新已購買分頁：
       - 已購買 email：已購買名單的 email
-      - 已購買 phone：原 sheet 的 phone 分頁，排除已購買電話
+      - 排除已購買 phone：原 sheet 的 phone 分頁，排除已購買電話
     不動原有的 email / phone 分頁。
     """
     if not _purchased["loaded"]:
@@ -501,7 +503,7 @@ def update_purchased_sheets(req: UpdatePurchasedRequest):
         # 不存在就新增
         add_reqs = [
             {"addSheet": {"properties": {"title": t}}}
-            for t in ["已購買 email", "已購買 phone"]
+            for t in ["已購買 email", "排除已購買 phone"]
             if t not in existing
         ]
         if add_reqs:
@@ -511,18 +513,20 @@ def update_purchased_sheets(req: UpdatePurchasedRequest):
             ).execute()
 
         # 清空已存在的分頁（準備覆寫）
-        for tab in ["已購買 email", "已購買 phone"]:
+        for tab in ["已購買 email", "排除已購買 phone"]:
             if tab in existing:
                 sheets_service.spreadsheets().values().clear(
                     spreadsheetId=spreadsheet_id, range=f"'{tab}'"
                 ).execute()
 
         # 寫入資料
-        purchased_email_rows = [["email"]] + list(_purchased["email_list"])
+        purchased_email_rows = [["email", "Name"]] + [
+            (email, i + 1) for i, (email,) in enumerate(_purchased["email_list"])
+        ]
         purchased_phone_rows = [["phone"]] + [(p,) for p in filtered_phones]
 
         _batch_write(sheets_service, spreadsheet_id, "已購買 email", purchased_email_rows)
-        _batch_write(sheets_service, spreadsheet_id, "已購買 phone", purchased_phone_rows)
+        _batch_write(sheets_service, spreadsheet_id, "排除已購買 phone", purchased_phone_rows)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Google Sheets 更新錯誤：{e}")
