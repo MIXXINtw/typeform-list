@@ -749,18 +749,7 @@ document.getElementById('formId').addEventListener('keydown', e => {
 renderHistory();
 loadForms();
 
-// 檢查伺服器是否已有暫存的已購買名單
-fetch('/purchased-status').then(r => r.json()).then(data => {
-  if (data.loaded) {
-    _purchasedLoaded = true;
-    document.getElementById('purchasedBadge').classList.add('visible');
-    document.getElementById('purchasedBadgeText').innerHTML =
-      `已載入已購買名單：<strong>${data.email_count}</strong> 封 email、<strong>${data.phone_count}</strong> 支電話`;
-    document.getElementById('uzText').textContent = '✅ 已載入（伺服器暫存）';
-    document.getElementById('uzHint').textContent = '可重新上傳以更新名單';
-    renderHistory(); // 已有暫存時也啟用按鈕
-  }
-}).catch(() => {});
+// 每次開啟頁面都需要重新上傳已購買名單（不使用伺服器暫存，避免多人共用時互相影響）
 
 async function loadForms() {
   document.getElementById('formSelectWrap').style.display = 'block';
