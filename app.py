@@ -431,6 +431,13 @@ def export(req: ExportRequest):
         "title":         title,
     }
 
+    # 匯出完成後清空已購買名單，避免跨使用者殘留
+    _purchased["loaded"]     = False
+    _purchased["emails"]     = set()
+    _purchased["phones"]     = set()
+    _purchased["email_list"] = []
+    _purchased["phone_list"] = []
+
     return {
         "form_id":            form_id,
         "form_title":         title,
@@ -534,6 +541,14 @@ def update_purchased_sheets(req: UpdatePurchasedRequest):
     p_email = len(_purchased["email_list"])
     p_phone = len(filtered_phones)
     print(f"✅ 已購買分頁更新完成：email {p_email} 筆，phone {p_phone} 筆")
+
+    # 更新完成後清空已購買名單，避免跨使用者殘留
+    _purchased["loaded"]     = False
+    _purchased["emails"]     = set()
+    _purchased["phones"]     = set()
+    _purchased["email_list"] = []
+    _purchased["phone_list"] = []
+
     return {
         "spreadsheet_id": spreadsheet_id,
         "purchased_email_count": p_email,
