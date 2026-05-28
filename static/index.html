@@ -497,6 +497,8 @@ const HISTORY_KEY = 'mixxin_tf_history';
 let currentFormId = '';
 const formTitleMap = {};
 let _purchasedLoaded = false;
+let _purchasedEmailList = [];   // 解析好的 email 陣列，隨 export 請求帶入
+let _purchasedPhoneList = [];   // 解析好的 phone 陣列（已 normalize）
 
 /* ── 歷史紀錄 ── */
 function loadHistory() { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
@@ -594,6 +596,10 @@ async function handlePurchasedUpload(file) {
       `已載入已購買名單：<strong>${data.email_count}</strong> 封 email、<strong>${data.phone_count}</strong> 支電話（Phone 匯出將自動排除這些號碼）`;
 
     log(`✔ 已購買名單載入：${data.email_count} email / ${data.phone_count} 電話`, 'success');
+
+    // 把解析好的名單存在前端，隨 export 請求一起帶入（避免伺服器記憶體遺失問題）
+    _purchasedEmailList = data.email_list || [];
+    _purchasedPhoneList = data.phone_list || [];
     _purchasedLoaded = true;
     renderHistory(); // 重新渲染讓按鈕從灰色變為可點擊
   } catch (err) {
@@ -640,7 +646,12 @@ async function startExport() {
     const res = await fetch('/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ form_id: formId, has_purchased: _purchasedLoaded }),
+      body: JSON.stringify({
+        form_id:          formId,
+        has_purchased:    _purchasedLoaded,
+        purchased_emails: _purchasedLoaded ? _purchasedEmailList : [],
+        purchased_phones: _purchasedLoaded ? _purchasedPhoneList : [],
+      }),
     });
     clearInterval(timer);
 
@@ -665,8 +676,10 @@ async function startExport() {
 
     showResult(data.sheet_url, data.email_count, data.phone_count, data.elapsed_seconds, pEmail, pPhone, data.purchased_loaded ?? false);
 
-    // 匯出完成後 server 已清空已購買名單，前端同步重置狀態
-    _purchasedLoaded = false;
+    // 匯出完成後同步重置前端已購買狀態（server 端亦已用完此筆資料）
+    _purchasedLoaded    = false;
+    _purchasedEmailList = [];
+    _purchasedPhoneList = [];
     renderHistory(); // 讓歷史列表的「更新已購買」按鈕回到灰色
 
     addHistory({

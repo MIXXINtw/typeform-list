@@ -5,6 +5,7 @@ Railway 部署版（含已購買名單功能）
 """
 import io, os, csv, re, time, requests
 from datetime import datetime
+from typing import List
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -319,7 +320,9 @@ app.add_middleware(
 
 class ExportRequest(BaseModel):
     form_id: str
-    has_purchased: bool = False   # 前端告知本次是否已上傳已購買名單
+    has_purchased: bool = False          # 前端告知本次是否已上傳已購買名單
+    purchased_emails: List[str] = []     # 已購買名單 email（由前端帶入，避免依賴伺服器狀態）
+    purchased_phones: List[str] = []     # 已購買名單 phone（已 normalize）
 
 
 @app.get("/health")
@@ -364,9 +367,12 @@ async def upload_purchased(file: UploadFile = File(...)):
 
     print(f"✅ 已購買名單載入：{len(result['emails_set'])} 封 email，{len(result['phones_set'])} 支電話")
     return {
-        "loaded": True,
+        "loaded":      True,
         "email_count": len(result["emails_set"]),
         "phone_count": len(result["phones_set"]),
+        # 回傳解析好的名單，讓前端存起來隨 export 請求一起帶入（避免伺服器記憶體狀態遺失）
+        "email_list":  sorted(result["emails_set"]),
+        "phone_list":  sorted(result["phones_set"]),
     }
 
 
@@ -385,14 +391,22 @@ def export(req: ExportRequest):
     form_id = req.form_id.strip()
     start = time.time()
 
-    # 若本次 session 沒上傳已購買名單，強制清空伺服器上可能殘留的舊資料
-    if not req.has_purchased:
+    # 每次 export 都從請求資料重建已購買狀態
+    # 這樣完全不依賴伺服器記憶體，跨 instance / server restart 都不會有殘留或遺失問題
+    if req.has_purchased and (req.purchased_emails or req.purchased_phones):
+        _purchased["loaded"]     = True
+        _purchased["emails"]     = set(e.lower().strip() for e in req.purchased_emails)
+        _purchased["phones"]     = set(req.purchased_phones)
+        _purchased["email_list"] = [(e,) for e in req.purchased_emails]
+        _purchased["phone_list"] = [(p,) for p in req.purchased_phones]
+        print(f"✅ 已購買名單（來自請求）：{len(req.purchased_emails)} email，{len(req.purchased_phones)} phone")
+    else:
         _purchased["loaded"]     = False
         _purchased["emails"]     = set()
         _purchased["phones"]     = set()
         _purchased["email_list"] = []
         _purchased["phone_list"] = []
-        print("ℹ️  本次未攜帶已購買名單，已清除伺服器殘留資料")
+        print("ℹ️  本次未攜帶已購買名單")
 
     try:
         raw     = fetch_all_responses(form_id)
