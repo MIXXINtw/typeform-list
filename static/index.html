@@ -480,6 +480,13 @@ input::placeholder { color: var(--muted2); }
     <div class="purchased-badge" id="purchasedBadge">
       <div class="dot"></div>
       <span id="purchasedBadgeText">—</span>
+      <button onclick="clearPurchased()" style="
+        margin-left:auto; flex-shrink:0;
+        font-size:11px; font-weight:600; font-family:'Noto Sans TC',sans-serif;
+        color:#6b7280; background:none; border:1px solid #d1d5db;
+        border-radius:6px; padding:3px 10px; cursor:pointer; transition:all 0.15s;
+      " onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444';"
+         onmouseout="this.style.borderColor='#d1d5db';this.style.color='#6b7280';">✕ 清除</button>
     </div>
   </div>
 
@@ -607,6 +614,22 @@ async function handlePurchasedUpload(file) {
     document.getElementById('uzHint').textContent = '需含「電子信箱」與「聯絡電話」欄位（如 Zeczec 訂單匯出）';
     log(`✕ 已購買名單上傳失敗：${err.message}`, 'error');
   }
+}
+
+/* ── 清除已購買名單 ── */
+function clearPurchased() {
+  _purchasedLoaded    = false;
+  _purchasedEmailList = [];
+  _purchasedPhoneList = [];
+
+  // 還原上傳區 UI
+  document.getElementById('uzText').textContent = '點擊或拖曳已購買名單 CSV';
+  document.getElementById('uzHint').textContent = '需含「電子信箱」與「聯絡電話」欄位（如 Zeczec 訂單匯出）';
+  document.getElementById('purchasedFile').value = '';   // 清掉 file input，讓同一個檔案可以重新選
+  document.getElementById('purchasedBadge').classList.remove('visible');
+
+  renderHistory(); // 讓「更新已購買」按鈕回到灰色
+  log('已清除已購買名單', 'muted');
 }
 
 document.getElementById('purchasedFile').addEventListener('change', e => {
