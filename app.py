@@ -79,12 +79,17 @@ def fetch_all_responses(form_id):
 
 
 def normalize_phone(raw: str) -> str:
-    """將各種格式的電話號碼統一為 09XXXXXXXX 格式"""
-    p = raw.strip()
-    if p.startswith("+8860"): return "0" + p[5:]
-    if p.startswith("+886"):  return "0" + p[4:]
-    if p.startswith("886"):   return "0" + p[3:]
+    """移除空白/連字號等符號，並將 +886 前綴轉為 0"""
+    p = re.sub(r'[\s\-\(\)\.\+]', '', raw.strip())  # 去掉空白、-、()、.
+    # +886 / 886 前綴 → 0（+已在上面被去掉，所以只需對純數字處理）
+    if p.startswith("8860"):  p = "0" + p[4:]
+    elif p.startswith("886"): p = "0" + p[3:]
     return p
+
+
+def is_mobile_phone(phone: str) -> bool:
+    """只接受台灣手機號碼：09 開頭共 10 碼。市話、海外、0800 一律排除。"""
+    return bool(re.fullmatch(r'09\d{8}', phone))
 
 
 def clean_responses(raw):
@@ -98,6 +103,9 @@ def clean_responses(raw):
             (a.get("phone_number", "") for a in answers if a.get("type") == "phone_number"), ""
         )
         phone = normalize_phone(phone_raw)
+        # 非台灣手機（市話、海外、0800…）視為無效，不納入任何匯出
+        if phone and not is_mobile_phone(phone):
+            phone = ""
 
         if not email and not phone:
             continue
@@ -274,10 +282,15 @@ def write_to_sheets(sheets_service, spreadsheet_id, cleaned):
         (email, i + 1) for i, (email,) in enumerate(_purchased["email_list"])
     ]
 
-    # ── 排除已購買 phone = Typeform phone 排除已購買電話 ──
+    # ── 排除已購買 phone ──
+    # 只在有匯入已購買名單時才輸出；沒有名單時此頁留空（只有標題列）
     phone_rows_all = [r["phone"] for r in cleaned if r["phone"]]
-    phone_rows_filtered = [p for p in phone_rows_all if p not in purchased_phones]
-    purchased_phone_rows = [["phone"]] + [(p,) for p in phone_rows_filtered]
+    if _purchased["loaded"]:
+        phone_rows_filtered = [p for p in phone_rows_all if p not in purchased_phones]
+        purchased_phone_rows = [["phone"]] + [(p,) for p in phone_rows_filtered]
+    else:
+        phone_rows_filtered = []
+        purchased_phone_rows = [["phone"]]   # 空白（只留標題）
 
     # 取得各分頁 sheetId，必要時擴展
     meta = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
