@@ -527,7 +527,7 @@ function renderHistory() {
 function loadFromHistory(formId, sheetUrl, emailCount, phoneCount, elapsed) {
   currentFormId = formId;
   document.getElementById('formId').value = formId;
-  showResult(sheetUrl, emailCount, phoneCount, elapsed, 0, 0);
+  showResult(sheetUrl, emailCount, phoneCount, elapsed, 0, 0, false);
 }
 
 /* ── Log ── */
@@ -550,14 +550,15 @@ function setProgress(pct) {
 }
 
 /* ── 顯示結果 ── */
-function showResult(sheetUrl, emailCount, phoneCount, elapsed, pEmailCount, pPhoneCount) {
+function showResult(sheetUrl, emailCount, phoneCount, elapsed, pEmailCount, pPhoneCount, purchasedLoaded) {
   document.getElementById('btnOpenSheet').href = sheetUrl;
   document.getElementById('btnOpenSheet').style.display = 'flex';
   document.getElementById('statEmail').textContent = emailCount;
   document.getElementById('statPhone').textContent = phoneCount;
   document.getElementById('statTime').textContent  = elapsed;
 
-  const hasPurchased = pEmailCount > 0 || pPhoneCount > 0;
+  // 只有本次真的上傳了已購買名單，才顯示已購買區塊
+  const hasPurchased = !!purchasedLoaded;
   document.getElementById('statPEmail').textContent    = pEmailCount;
   document.getElementById('statPPhone').textContent    = pPhoneCount;
   document.getElementById('statPEmailBox').style.display = hasPurchased ? '' : 'none';
@@ -662,7 +663,7 @@ async function startExport() {
     }
     log(`⏱ 耗時 ${data.elapsed_seconds} 秒`, 'muted');
 
-    showResult(data.sheet_url, data.email_count, data.phone_count, data.elapsed_seconds, pEmail, pPhone);
+    showResult(data.sheet_url, data.email_count, data.phone_count, data.elapsed_seconds, pEmail, pPhone, data.purchased_loaded ?? false);
 
     // 匯出完成後 server 已清空已購買名單，前端同步重置狀態
     _purchasedLoaded = false;

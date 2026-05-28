@@ -456,6 +456,7 @@ def export(req: ExportRequest):
         "phone_count":        phone_count,
         "purchased_email_count": p_email_count,
         "purchased_phone_count": p_phone_count,
+        "purchased_loaded":   req.has_purchased,   # 本次是否真的使用了已購買名單
         "elapsed_seconds":    elapsed,
     }
 
