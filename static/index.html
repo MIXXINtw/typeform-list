@@ -639,7 +639,7 @@ async function startExport() {
     const res = await fetch('/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ form_id: formId }),
+      body: JSON.stringify({ form_id: formId, has_purchased: _purchasedLoaded }),
     });
     clearInterval(timer);
 
@@ -663,6 +663,10 @@ async function startExport() {
     log(`⏱ 耗時 ${data.elapsed_seconds} 秒`, 'muted');
 
     showResult(data.sheet_url, data.email_count, data.phone_count, data.elapsed_seconds, pEmail, pPhone);
+
+    // 匯出完成後 server 已清空已購買名單，前端同步重置狀態
+    _purchasedLoaded = false;
+    renderHistory(); // 讓歷史列表的「更新已購買」按鈕回到灰色
 
     addHistory({
       form_id:     data.form_id,

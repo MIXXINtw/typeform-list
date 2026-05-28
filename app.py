@@ -319,6 +319,7 @@ app.add_middleware(
 
 class ExportRequest(BaseModel):
     form_id: str
+    has_purchased: bool = False   # 前端告知本次是否已上傳已購買名單
 
 
 @app.get("/health")
@@ -383,6 +384,15 @@ def purchased_status():
 def export(req: ExportRequest):
     form_id = req.form_id.strip()
     start = time.time()
+
+    # 若本次 session 沒上傳已購買名單，強制清空伺服器上可能殘留的舊資料
+    if not req.has_purchased:
+        _purchased["loaded"]     = False
+        _purchased["emails"]     = set()
+        _purchased["phones"]     = set()
+        _purchased["email_list"] = []
+        _purchased["phone_list"] = []
+        print("ℹ️  本次未攜帶已購買名單，已清除伺服器殘留資料")
 
     try:
         raw     = fetch_all_responses(form_id)
