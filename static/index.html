@@ -457,8 +457,8 @@ input::placeholder { color: var(--muted2); }
 
     <!-- CSV 下載按鈕 -->
     <div class="csv-row">
-      <button class="btn-csv" onclick="downloadCSV('email')">✉ 下載 Email CSV</button>
-      <button class="btn-csv" onclick="downloadCSV('phone')">📱 下載 Phone CSV</button>
+      <button class="btn-csv" id="btnDlEmail" onclick="downloadCSV('email')">✉ 下載 Email CSV</button>
+      <button class="btn-csv" id="btnDlPhone" onclick="downloadCSV('phone')">📱 下載 Phone CSV</button>
       <button class="btn-csv purchased" id="btnDlPEmail" onclick="downloadCSV('purchased-email')" style="display:none;">🛒 已購買 Email CSV</button>
       <button class="btn-csv purchased" id="btnDlPPhone" onclick="downloadCSV('purchased-phone')" style="display:none;">🛒 已購買 Phone CSV</button>
     </div>
