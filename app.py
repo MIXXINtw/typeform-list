@@ -507,6 +507,8 @@ def _csv_response(data: bytes, filename: str):
 
 class UpdatePurchasedRequest(BaseModel):
     spreadsheet_id: str
+    purchased_emails: List[str] = []   # 和 export 相同，由前端帶入避免伺服器狀態遺失
+    purchased_phones: List[str] = []
 
 
 @app.post("/update-purchased-sheets")
@@ -517,7 +519,16 @@ def update_purchased_sheets(req: UpdatePurchasedRequest):
       - 排除已購買 phone：原 sheet 的 phone 分頁，排除已購買電話
     不動原有的 email / phone 分頁。
     """
-    if not _purchased["loaded"]:
+    # 優先使用請求中帶入的名單（避免伺服器記憶體狀態遺失問題）
+    if req.purchased_emails or req.purchased_phones:
+        p_emails_set = set(e.lower().strip() for e in req.purchased_emails)
+        p_phones_set = set(req.purchased_phones)
+        p_email_list = [(e,) for e in req.purchased_emails]
+    elif _purchased["loaded"]:
+        p_emails_set = _purchased["emails"]
+        p_phones_set = _purchased["phones"]
+        p_email_list = _purchased["email_list"]
+    else:
         raise HTTPException(status_code=400, detail="請先上傳已購買名單")
 
     try:
@@ -539,11 +550,12 @@ def update_purchased_sheets(req: UpdatePurchasedRequest):
         all_phones = [row[0] for row in phone_values[1:] if row]
 
         # 過濾已購買電話
-        filtered_phones = [p for p in all_phones if p not in _purchased["phones"]]
+        filtered_phones = [p for p in all_phones if p not in p_phones_set]
 
         # 確認哪些分頁已存在
         meta = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
         existing = {s["properties"]["title"]: s["properties"]["sheetId"] for s in meta["sheets"]}
+        sheet_map = existing  # 供 _expand_sheet 使用
 
         # 不存在就新增
         add_reqs = [
@@ -552,10 +564,15 @@ def update_purchased_sheets(req: UpdatePurchasedRequest):
             if t not in existing
         ]
         if add_reqs:
-            sheets_service.spreadsheets().batchUpdate(
+            res2 = sheets_service.spreadsheets().batchUpdate(
                 spreadsheetId=spreadsheet_id,
                 body={"requests": add_reqs}
             ).execute()
+            # 更新 sheet_map（包含剛新增的分頁）
+            for r in res2.get("replies", []):
+                props = r.get("addSheet", {}).get("properties", {})
+                if props:
+                    sheet_map[props["title"]] = props["sheetId"]
 
         # 清空已存在的分頁（準備覆寫）
         for tab in ["已購買 email", "排除已購買 phone"]:
@@ -564,28 +581,24 @@ def update_purchased_sheets(req: UpdatePurchasedRequest):
                     spreadsheetId=spreadsheet_id, range=f"'{tab}'"
                 ).execute()
 
-        # 寫入資料
+        # 寫入資料（先擴展列數，避免超過預設 1000 列限制）
         purchased_email_rows = [["email", "Name"]] + [
-            (email, i + 1) for i, (email,) in enumerate(_purchased["email_list"])
+            (email, i + 1) for i, (email,) in enumerate(p_email_list)
         ]
         purchased_phone_rows = [["phone"]] + [(p,) for p in filtered_phones]
 
-        _batch_write(sheets_service, spreadsheet_id, "已購買 email", purchased_email_rows)
+        _expand_sheet(sheets_service, spreadsheet_id, sheet_map, "已購買 email",     len(purchased_email_rows))
+        _expand_sheet(sheets_service, spreadsheet_id, sheet_map, "排除已購買 phone", len(purchased_phone_rows))
+
+        _batch_write(sheets_service, spreadsheet_id, "已購買 email",     purchased_email_rows)
         _batch_write(sheets_service, spreadsheet_id, "排除已購買 phone", purchased_phone_rows)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Google Sheets 更新錯誤：{e}")
 
-    p_email = len(_purchased["email_list"])
+    p_email = len(p_email_list)
     p_phone = len(filtered_phones)
     print(f"✅ 已購買分頁更新完成：email {p_email} 筆，phone {p_phone} 筆")
-
-    # 更新完成後清空已購買名單，避免跨使用者殘留
-    _purchased["loaded"]     = False
-    _purchased["emails"]     = set()
-    _purchased["phones"]     = set()
-    _purchased["email_list"] = []
-    _purchased["phone_list"] = []
 
     return {
         "spreadsheet_id": spreadsheet_id,
