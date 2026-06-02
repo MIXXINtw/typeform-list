@@ -540,61 +540,76 @@ def update_purchased_sheets(req: UpdatePurchasedRequest):
 
     spreadsheet_id = req.spreadsheet_id
 
+    def _gsheet_err(step: str, e: Exception) -> HTTPException:
+        """將 Google HttpError（str() 為空）轉為可讀訊息"""
+        msg = repr(e) if not str(e) else str(e)
+        print(f"❌ update_purchased_sheets [{step}] {type(e).__name__}: {msg}")
+        return HTTPException(status_code=500, detail=f"Google Sheets 更新錯誤（{step}）：{msg}")
+
+    # ── Step 1：讀取 phone 分頁 ──
     try:
-        # 讀取原 phone 分頁（A 欄，跳過標題列）
         result = sheets_service.spreadsheets().values().get(
             spreadsheetId=spreadsheet_id,
-            range="'phone'!A:A"
+            range="phone!A:A"        # 不加引號，避免部分版本 API 解析問題
         ).execute()
-        phone_values = result.get("values", [])
-        all_phones = [row[0] for row in phone_values[1:] if row]
+    except Exception as e:
+        raise _gsheet_err("讀取 phone 分頁", e)
 
-        # 過濾已購買電話
-        filtered_phones = [p for p in all_phones if p not in p_phones_set]
+    phone_values = result.get("values", [])
+    all_phones = [row[0] for row in phone_values[1:] if row]
+    filtered_phones = [p for p in all_phones if p not in p_phones_set]
 
-        # 確認哪些分頁已存在
+    # ── Step 2：取得分頁 metadata ──
+    try:
         meta = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id).execute()
-        existing = {s["properties"]["title"]: s["properties"]["sheetId"] for s in meta["sheets"]}
-        sheet_map = existing  # 供 _expand_sheet 使用
+    except Exception as e:
+        raise _gsheet_err("取得 spreadsheet metadata", e)
 
-        # 不存在就新增
-        add_reqs = [
-            {"addSheet": {"properties": {"title": t}}}
-            for t in ["已購買 email", "排除已購買 phone"]
-            if t not in existing
-        ]
-        if add_reqs:
+    existing  = {s["properties"]["title"]: s["properties"]["sheetId"] for s in meta["sheets"]}
+    sheet_map = dict(existing)   # 複製，避免後續修改影響 existing 判斷
+
+    # ── Step 3：新增缺少的分頁 ──
+    add_reqs = [
+        {"addSheet": {"properties": {"title": t}}}
+        for t in ["已購買 email", "排除已購買 phone"]
+        if t not in existing
+    ]
+    if add_reqs:
+        try:
             res2 = sheets_service.spreadsheets().batchUpdate(
                 spreadsheetId=spreadsheet_id,
                 body={"requests": add_reqs}
             ).execute()
-            # 更新 sheet_map（包含剛新增的分頁）
             for r in res2.get("replies", []):
                 props = r.get("addSheet", {}).get("properties", {})
                 if props:
                     sheet_map[props["title"]] = props["sheetId"]
+        except Exception as e:
+            raise _gsheet_err("新增分頁", e)
 
-        # 清空已存在的分頁（準備覆寫）
-        for tab in ["已購買 email", "排除已購買 phone"]:
-            if tab in existing:
+    # ── Step 4：清空舊資料 ──
+    for tab in ["已購買 email", "排除已購買 phone"]:
+        if tab in existing:
+            try:
                 sheets_service.spreadsheets().values().clear(
                     spreadsheetId=spreadsheet_id, range=f"'{tab}'"
                 ).execute()
+            except Exception as e:
+                raise _gsheet_err(f"清空分頁 {tab}", e)
 
-        # 寫入資料（先擴展列數，避免超過預設 1000 列限制）
-        purchased_email_rows = [["email", "Name"]] + [
-            (email, i + 1) for i, (email,) in enumerate(p_email_list)
-        ]
-        purchased_phone_rows = [["phone"]] + [(p,) for p in filtered_phones]
+    # ── Step 5：寫入資料（先擴展列數，避免超過預設 1000 列限制）──
+    purchased_email_rows = [["email", "Name"]] + [
+        [email, i + 1] for i, (email,) in enumerate(p_email_list)
+    ]
+    purchased_phone_rows = [["phone"]] + [[p] for p in filtered_phones]
 
+    try:
         _expand_sheet(sheets_service, spreadsheet_id, sheet_map, "已購買 email",     len(purchased_email_rows))
         _expand_sheet(sheets_service, spreadsheet_id, sheet_map, "排除已購買 phone", len(purchased_phone_rows))
-
         _batch_write(sheets_service, spreadsheet_id, "已購買 email",     purchased_email_rows)
         _batch_write(sheets_service, spreadsheet_id, "排除已購買 phone", purchased_phone_rows)
-
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Google Sheets 更新錯誤：{e}")
+        raise _gsheet_err("寫入分頁資料", e)
 
     p_email = len(p_email_list)
     p_phone = len(filtered_phones)
