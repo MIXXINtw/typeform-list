@@ -58,7 +58,8 @@ def get_google_services():
 
 # ── Typeform ──
 def fetch_all_responses(form_id):
-    all_responses, before_cursor, page_num = [], None, 0
+    """逐頁 yield 回覆，不把整份原始 JSON 留在記憶體（避免匯出後程序常駐 GB 級記憶體）"""
+    total, before_cursor, page_num = 0, None, 0
     while page_num < MAX_PAGES:
         page_num += 1
         params = {"page_size": PAGE_SIZE}
@@ -70,12 +71,12 @@ def fetch_all_responses(form_id):
             params=params, timeout=30)
         resp.raise_for_status()
         items = resp.json().get("items", [])
-        all_responses.extend(items)
-        print(f"  第 {page_num} 頁：{len(items)} 筆，累計 {len(all_responses)} 筆")
+        total += len(items)
+        print(f"  第 {page_num} 頁：{len(items)} 筆，累計 {total} 筆")
+        yield from items
         if len(items) < PAGE_SIZE:
             break
         before_cursor = items[-1]["token"]
-    return all_responses
 
 
 def normalize_phone(raw: str) -> str:
