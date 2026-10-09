@@ -438,14 +438,17 @@ input::placeholder { color: var(--text-tertiary); }
 }
 .history-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 118px 150px auto auto;
-  align-items: center; column-gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 124px auto auto;
+  grid-template-rows: auto auto;
+  align-items: center; column-gap: 16px; row-gap: 2px;
   padding: 12px 14px;
   font-size: 13px;
 }
-.history-id { color: var(--text-primary); font-weight: 500; min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
-.history-date { color: var(--text-tertiary); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
-.history-counts { color: var(--text-secondary); white-space: nowrap; }
+.history-id { grid-column: 1; grid-row: 1 / span 2; color: var(--text-primary); font-weight: 500; min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+.history-date { grid-column: 2; grid-row: 1; align-self: end; color: var(--text-tertiary); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+.history-counts { grid-column: 2; grid-row: 2; align-self: start; color: var(--text-secondary); white-space: nowrap; }
+.history-update-btn { grid-column: 3; grid-row: 1 / span 2; }
+.history-dl { grid-column: 4; grid-row: 1 / span 2; }
 .history-dl {
   color: var(--text-secondary); text-decoration: none; font-size: 12px; font-weight: 500;
   padding: 5px 10px; border: 1px solid var(--border-default);
@@ -496,12 +499,12 @@ input::placeholder { color: var(--text-tertiary); }
   .stat { min-width: 0; padding: 16px 12px; }
   .stat-num { font-size: 26px; }
   .csv-row { flex-direction: column; }
-  .history-item { grid-template-columns: auto 1fr; row-gap: 8px; column-gap: 12px; }
-  .history-id { grid-column: 1 / -1; }
-  .history-date { grid-column: 1; }
-  .history-counts { grid-column: 2; }
-  .history-update-btn { grid-column: 1; justify-self: start; }
-  .history-dl { grid-column: 2; justify-self: start; }
+  .history-item { grid-template-columns: auto 1fr; grid-template-rows: auto; row-gap: 8px; column-gap: 12px; }
+  .history-id { grid-column: 1 / -1; grid-row: 1; }
+  .history-date { grid-column: 1; grid-row: 2; align-self: center; }
+  .history-counts { grid-column: 2; grid-row: 2; align-self: center; }
+  .history-update-btn { grid-column: 1; grid-row: 3; justify-self: start; }
+  .history-dl { grid-column: 2; grid-row: 3; justify-self: start; }
 }
 </style>
 </head>
